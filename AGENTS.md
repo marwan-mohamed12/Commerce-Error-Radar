@@ -53,7 +53,7 @@ F:\grok\Commerce-Error-Radar\
 | JDK | 21 (Adoptium). Machine `JAVA_HOME` may still be JDK 8 — set JDK 21 before Maven. |
 | Parser | `parser` module, JUnit 5 |
 | Collector | Spring Boot 3.5, JDBC + SQLite, SSE |
-| UI | Angular 22, standalone components, signals, SCSS (not React, not Tailwind) |
+| UI | Angular 22, standalone components, signals, Tailwind CSS v4 |
 | Ports | collector `8088`, UI `4200` (dev server proxies `/api` → 8088) |
 
 ## How to run
@@ -128,7 +128,7 @@ SQLite file: `collector/data/radar.db` (gitignored). Schema on startup in `Schem
 - Filters: ERROR/WARN, kind chips, mine-only, search.
 - Copy stack, mute, open/replay an old log.
 - SSE updates counts live.
-- Distinctive type: Fraunces + Sora + IBM Plex Mono. Do not restyle as generic SaaS or acid-green terminal.
+- Distinctive type: Fraunces + Sora + IBM Plex Mono. Styling is Tailwind v4 with tokens in `web/src/styles.css` (`ink`, `fog`, `ember`, `honey`, `brass`, `signal`). Do not restyle as generic SaaS or acid-green terminal.
 
 ## Code conventions
 

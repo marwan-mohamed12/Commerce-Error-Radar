@@ -1,75 +1,120 @@
 @if (detail(); as d) {
-  <article class="detail">
-    <header class="head">
-      <div class="kicker">
-        <span class="level" [class.is-error]="d.issue.level !== 'WARN'" [class.is-warn]="d.issue.level === 'WARN'">
+  <article class="mx-auto flex max-w-5xl flex-col gap-6 px-4 py-5 sm:px-6 sm:py-7">
+    @if (canGoBack()) {
+      <button
+        type="button"
+        class="inline-flex w-fit items-center gap-1 rounded-lg px-1 py-1 font-mono text-[0.7rem] uppercase tracking-[0.08em] text-steel transition hover:text-brass lg:hidden"
+        (click)="back.emit()"
+      >
+        ← Issues
+      </button>
+    }
+
+    <header class="space-y-3">
+      <div class="flex flex-wrap items-center gap-2 font-mono text-[0.7rem] uppercase tracking-[0.08em] text-steel">
+        <span
+          class="rounded-md px-1.5 py-0.5"
+          [class.bg-ember/15]="d.issue.level !== 'WARN'"
+          [class.text-ember]="d.issue.level !== 'WARN'"
+          [class.bg-honey/15]="d.issue.level === 'WARN'"
+          [class.text-honey]="d.issue.level === 'WARN'"
+        >
           {{ d.issue.level }}
         </span>
-        <span class="kind">{{ kindLabel(d.issue.kind) }}</span>
+        <span>{{ kindLabel(d.issue.kind) }}</span>
         @if (d.issue.hasCustomFrame) {
-          <span class="mine">your package</span>
+          <span class="text-brass">your package</span>
         }
-        <span class="count">seen ×{{ d.issue.count }}</span>
+        <span class="rounded-full bg-raised px-2 py-0.5 text-fog">seen ×{{ d.issue.count }}</span>
       </div>
-      <h1>{{ d.issue.title }}</h1>
-      <p class="message">{{ event()?.message || d.issue.lastMessage }}</p>
-      <div class="when">
+
+      <h1 class="font-display text-[1.55rem] leading-tight font-medium tracking-[-0.03em] text-fog sm:text-[1.85rem]">
+        {{ d.issue.title }}
+      </h1>
+      <p class="max-w-prose text-[0.98rem] leading-relaxed text-mist">
+        {{ event()?.message || d.issue.lastMessage }}
+      </p>
+
+      <div class="flex flex-wrap gap-x-4 gap-y-1 font-mono text-[0.72rem] text-steel">
         <span>{{ clock(d.issue.lastSeen) }}</span>
         <span>{{ rel(d.issue.lastSeen) }}</span>
         @if (event()?.logger) {
-          <span class="mono">{{ event()?.logger }}</span>
+          <span class="text-mist">{{ event()?.logger }}</span>
         }
         @if (event()?.thread) {
-          <span class="mono">{{ event()?.thread }}</span>
+          <span>{{ event()?.thread }}</span>
         }
       </div>
-      <div class="actions">
-        <button type="button" class="btn" (click)="copyStack()">
+
+      <div class="flex flex-wrap gap-2 pt-1">
+        <button
+          type="button"
+          class="rounded-xl border border-line px-3 py-2 font-mono text-[0.68rem] uppercase tracking-[0.08em] text-fog transition hover:border-brass hover:text-brass"
+          (click)="copyStack()"
+        >
           {{ copied() ? 'Copied' : 'Copy stack' }}
         </button>
-        <button type="button" class="btn" (click)="toggleMute()">
+        <button
+          type="button"
+          class="rounded-xl border border-line px-3 py-2 font-mono text-[0.68rem] uppercase tracking-[0.08em] text-fog transition hover:border-brass hover:text-brass"
+          (click)="toggleMute()"
+        >
           {{ d.issue.muted ? 'Unmute' : 'Mute fingerprint' }}
         </button>
       </div>
     </header>
 
     @if (ids().length) {
-      <section class="ids">
-        <h2>Business ids</h2>
-        <dl>
+      <section>
+        <h2 class="mb-2 font-mono text-[0.7rem] font-medium uppercase tracking-[0.1em] text-steel">Business ids</h2>
+        <dl class="flex flex-wrap gap-2">
           @for (pair of ids(); track pair[0]) {
-            <div>
-              <dt>{{ pair[0] }}</dt>
-              <dd>{{ pair[1] }}</dd>
+            <div class="flex items-baseline gap-2 rounded-xl border border-line bg-panel px-2.5 py-1.5">
+              <dt class="font-mono text-[0.66rem] uppercase tracking-[0.08em] text-steel">{{ pair[0] }}</dt>
+              <dd class="font-mono text-[0.82rem] text-fog">{{ pair[1] }}</dd>
             </div>
           }
         </dl>
       </section>
     }
 
-    <section class="stack-wrap">
-      <h2>Stack</h2>
-      <ol class="stack">
+    <section>
+      <h2 class="mb-2 font-mono text-[0.7rem] font-medium uppercase tracking-[0.1em] text-steel">Stack</h2>
+      <ol class="overflow-x-auto rounded-2xl border border-line bg-ink p-3 sm:p-4">
         @for (block of blocks(); track $index) {
           @if (block.type === 'line' && block.line) {
             <li
-              class="line"
-              [class.is-mine]="block.line.mine"
-              [class.is-hybris]="block.line.hybris"
-              [class.is-cause]="block.line.kind === 'cause' || block.line.kind === 'type'"
+              class="border-l-2 py-0.5 pl-2.5 font-mono text-[0.75rem] leading-relaxed break-all whitespace-pre-wrap sm:text-[0.78rem]"
+              [class.border-brass]="block.line.mine"
+              [class.bg-brass/10]="block.line.mine"
+              [class.text-fog]="block.line.mine"
+              [class.border-transparent]="!block.line.mine"
+              [class.text-ember]="block.line.kind === 'cause' || block.line.kind === 'type'"
+              [class.mt-2]="block.line.kind === 'cause' || block.line.kind === 'type'"
+              [class.text-steel]="
+                !block.line.mine && block.line.kind !== 'cause' && block.line.kind !== 'type'
+              "
             >
               {{ block.line.text }}
             </li>
           } @else if (block.hidden) {
-            <li class="group">
-              <button type="button" class="fold" (click)="toggleGroup($index)">
+            <li class="my-1.5">
+              <button
+                type="button"
+                class="rounded-lg border border-line px-2.5 py-1.5 font-mono text-[0.66rem] uppercase tracking-[0.07em] text-steel transition hover:border-brass hover:text-brass"
+                (click)="toggleGroup($index)"
+              >
                 {{ isOpen($index) ? 'Hide' : 'Show' }}
                 {{ block.hidden.length }} Hybris / framework frames
               </button>
               @if (isOpen($index)) {
-                <ol>
+                <ol class="mt-1">
                   @for (line of block.hidden; track $index) {
-                    <li class="line is-dim">{{ line.text }}</li>
+                    <li
+                      class="border-l-2 border-transparent py-0.5 pl-2.5 font-mono text-[0.74rem] leading-relaxed break-all whitespace-pre-wrap text-steel/70"
+                    >
+                      {{ line.text }}
+                    </li>
                   }
                 </ol>
               }
@@ -80,18 +125,29 @@
     </section>
 
     @if (event()?.contextText) {
-      <section class="context">
-        <button type="button" class="fold" (click)="showContext.set(!showContext())">
+      <section class="pb-8">
+        <button
+          type="button"
+          class="rounded-lg border border-line px-2.5 py-1.5 font-mono text-[0.66rem] uppercase tracking-[0.07em] text-steel transition hover:border-brass hover:text-brass"
+          (click)="showContext.set(!showContext())"
+        >
           {{ showContext() ? 'Hide' : 'Show' }} preceding context
         </button>
         @if (showContext()) {
-          <pre>{{ event()?.contextText }}</pre>
+          <pre
+            class="mt-3 max-h-72 overflow-auto rounded-2xl border border-line bg-ink p-3 font-mono text-[0.74rem] leading-relaxed break-all whitespace-pre-wrap text-steel sm:p-4"
+          >{{ event()?.contextText }}</pre>
         }
       </section>
     }
   </article>
 } @else {
-  <div class="blank">
-    <p>Select an issue.</p>
+  <div class="grid min-h-[50vh] place-items-center px-6 text-center">
+    <div>
+      <p class="font-display text-2xl text-fog">Pick an issue</p>
+      <p class="mt-2 max-w-[24ch] text-sm leading-relaxed text-steel">
+        The stack, context, and IDs stay here while new errors keep arriving on the left.
+      </p>
+    </div>
   </div>
 }

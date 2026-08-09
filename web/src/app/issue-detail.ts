@@ -6,12 +6,14 @@ import { clockTime, relativeTime } from './time';
 @Component({
   selector: 'app-issue-detail',
   templateUrl: './issue-detail.html',
-  styleUrl: './issue-detail.scss',
+  host: { class: 'block min-h-full' },
 })
 export class IssueDetailView {
   readonly detail = input<IssueDetail | null>(null);
   readonly prefix = input('');
+  readonly canGoBack = input(false);
   readonly mute = output<{ fingerprint: string; muted: boolean }>();
+  readonly back = output<void>();
 
   readonly copied = signal(false);
   readonly showContext = signal(true);

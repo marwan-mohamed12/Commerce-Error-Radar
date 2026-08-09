@@ -5,7 +5,7 @@ import { relativeTime } from './time';
 @Component({
   selector: 'app-issue-list',
   templateUrl: './issue-list.html',
-  styleUrl: './issue-list.scss',
+  host: { class: 'block h-full' },
 })
 export class IssueList {
   readonly issues = input<Issue[]>([]);

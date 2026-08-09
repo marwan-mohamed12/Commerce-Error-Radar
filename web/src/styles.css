@@ -1,0 +1,73 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Sora', 'Segoe UI', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Fraunces', 'Times New Roman', ui-serif, serif;
+  --font-mono: 'IBM Plex Mono', 'Consolas', ui-monospace, monospace;
+
+  --color-ink: #10161d;
+  --color-ink-2: #151c24;
+  --color-panel: #1c2430;
+  --color-raised: #252e3c;
+  --color-line: #334050;
+  --color-fog: #e7e2d6;
+  --color-mist: #b8b2a6;
+  --color-steel: #8a93a0;
+  --color-ember: #e07058;
+  --color-honey: #e0b15c;
+  --color-brass: #c9a36a;
+  --color-signal: #5a9eae;
+}
+
+@layer base {
+  html,
+  body {
+    min-height: 100%;
+  }
+
+  body {
+    @apply bg-ink font-sans text-[15px] text-fog antialiased;
+    background-image:
+      radial-gradient(900px 420px at 8% -8%, color-mix(in srgb, var(--color-brass) 11%, transparent), transparent 62%),
+      radial-gradient(700px 380px at 100% 0%, color-mix(in srgb, var(--color-signal) 8%, transparent), transparent 55%),
+      linear-gradient(180deg, #141b23 0%, var(--color-ink) 32%);
+  }
+
+  button,
+  input {
+    font: inherit;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--color-brass) 42%, #000);
+    color: var(--color-fog);
+  }
+}
+
+@keyframes radar-sweep {
+  from {
+    transform: translateY(-70%);
+    opacity: 0.85;
+  }
+  to {
+    transform: translateY(70%);
+    opacity: 0;
+  }
+}
+
+@layer utilities {
+  .live-dot {
+    @apply size-2 shrink-0 rounded-full bg-steel;
+  }
+
+  .live-dot-on {
+    @apply bg-signal;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-signal) 28%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .radar-sweep {
+    animation: none !important;
+  }
+}
