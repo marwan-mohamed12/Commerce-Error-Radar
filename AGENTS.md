@@ -104,7 +104,7 @@ Parent POM skips `spring-boot:run`; only `collector` runs the app. Always use `-
 
 ### Ignore list
 
-- Patterns live in `collector/src/main/resources/application.yml` (`radar.ignore-patterns`).
+- Patterns live in `collector/src/main/resources/application.properties` (`radar.ignore-patterns`, comma-separated).
 - Match **only the event’s own text** (raw + message + logger). Never match preceding context, or a Solr ping will hide later real errors.
 
 ### API
@@ -132,7 +132,7 @@ SQLite file: `collector/data/radar.db` (gitignored). Schema on startup in `Schem
 
 ## Code conventions
 
-- Java 21, constructor injection, `application.yml` + `@ConfigurationProperties`.
+- Java 21, constructor injection, `application.properties` + `@ConfigurationProperties`.
 - Parser has **no** Spring dependency. New parse/fingerprint/classifier logic goes in `parser` with a fixture test.
 - Do not expose JDBC rows directly; use the DTOs in `IssueDtos`.
 - Angular: standalone components, signals, `@if`/`@for`, no NgModules.
