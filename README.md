@@ -97,7 +97,7 @@ npm run build
 - Order / product / user / cronjob / catalog version extracted when present
 - Classifiers: CronJob, ImpEx, OCC, FlexibleSearch, Solr, Interceptor, Model save
 - “Mine only” hides issues with no custom-package frame
-- Ignore list in `collector/src/main/resources/application.yml` (Solr ping, session replication, HAC, actuator)
+- Ignore list in `collector/src/main/resources/application.properties` (Solr ping, session replication, HAC, actuator)
 - Mute a fingerprint, copy stack, open an old `console-*.log` and replay it
 - Log rotation: a newer `console-YYYYMMDD.log` is picked up without restarting the collector
 
@@ -130,16 +130,13 @@ Read `AGENTS.md` before changing code. Work only in this directory. Never create
 
 ## Configure
 
-`collector/src/main/resources/application.yml`
+`collector/src/main/resources/application.properties`
 
-```yaml
-radar:
-  hybris-home: ${hybris.home:${HYBRIS_HOME:}}
-  custom-package-prefix: ${RADAR_PREFIX:com.yourcompany}
-  tail-from-end: true
-  ignore-patterns:
-    - "Solr ping"
-    - "session replication"
+```properties
+radar.hybris-home=${hybris.home:${HYBRIS_HOME:}}
+radar.custom-package-prefix=${RADAR_PREFIX:com.yourcompany}
+radar.tail-from-end=true
+radar.ignore-patterns=Solr ping,session replication
 ```
 
 Flags:
