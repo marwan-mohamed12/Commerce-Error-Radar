@@ -128,7 +128,9 @@ SQLite file: `collector/data/radar.db` (gitignored). Schema on startup in `Schem
 - Filters: ERROR/WARN, kind chips, mine-only, search.
 - Copy stack, mute, open/replay an old log.
 - SSE updates counts live.
-- Distinctive type: Fraunces + Sora + IBM Plex Mono. Styling is Tailwind v4 with tokens in `web/src/styles.css` (`ink`, `fog`, `ember`, `honey`, `brass`, `signal`). Do not restyle as generic SaaS or acid-green terminal.
+- Tailwind v4 with semantic tokens in `web/src/styles.css`. Dark/light via `data-theme` + `ThemeService` (`localStorage` key `radar-theme`).
+- Dark = night Hybris boot. Light = cool printout paper (blue-gray, not cream).
+- Keep Fraunces + Sora + IBM Plex Mono. Do not restyle as generic SaaS or acid-green terminal.
 
 ## Code conventions
 

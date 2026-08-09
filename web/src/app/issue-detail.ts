@@ -16,7 +16,7 @@ export class IssueDetailView {
   readonly back = output<void>();
 
   readonly copied = signal(false);
-  readonly showContext = signal(true);
+  readonly showContext = signal(false);
   readonly openGroups = signal<Record<number, boolean>>({});
 
   readonly event = computed(() => this.detail()?.events[0] ?? null);
