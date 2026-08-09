@@ -1,5 +1,4 @@
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { IssueDetailView } from './issue-detail';
 import { IssueList } from './issue-list';
 import { ISSUE_KINDS } from './models';
@@ -8,9 +7,8 @@ import { fileName } from './time';
 
 @Component({
   selector: 'app-root',
-  imports: [FormsModule, IssueList, IssueDetailView],
+  imports: [IssueList, IssueDetailView],
   templateUrl: './app.html',
-  styleUrl: './app.scss',
 })
 export class App implements OnInit, OnDestroy {
   readonly radar = inject(RadarService);
@@ -19,20 +17,15 @@ export class App implements OnInit, OnDestroy {
   readonly openPath = signal('');
   readonly replay = signal(true);
   readonly showOpen = signal(false);
+  readonly pane = signal<'list' | 'detail'>('list');
   private searchTimer: ReturnType<typeof setTimeout> | null = null;
-  private clock = signal(Date.now());
-  private clockId: ReturnType<typeof setInterval> | null = null;
 
   ngOnInit(): void {
     void this.radar.bootstrap().catch(() => undefined);
-    this.clockId = setInterval(() => this.clock.set(Date.now()), 15000);
   }
 
   ngOnDestroy(): void {
     this.radar.disconnect();
-    if (this.clockId) {
-      clearInterval(this.clockId);
-    }
     if (this.searchTimer) {
       clearTimeout(this.searchTimer);
     }
@@ -57,5 +50,20 @@ export class App implements OnInit, OnDestroy {
     }
     await this.radar.openLog(path, this.replay());
     this.showOpen.set(false);
+  }
+
+  async pickIssue(fingerprint: string): Promise<void> {
+    await this.radar.select(fingerprint);
+    this.pane.set('detail');
+  }
+
+  chipLabel(kind: string): string {
+    if (kind === 'FLEXIBLE_SEARCH') {
+      return 'FlexSearch';
+    }
+    if (kind === 'MODEL_SAVE') {
+      return 'Model save';
+    }
+    return kind.replaceAll('_', ' ');
   }
 }

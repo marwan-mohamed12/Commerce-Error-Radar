@@ -27,7 +27,7 @@ Spring Boot collector  →  SQLite  →  http://localhost:4200  (Angular)
 | Ingest | Tail `hybris\log\tomcat\console-*.log` |
 | Store | SQLite (WARN/ERROR only) |
 | Live updates | Server-Sent Events |
-| UI | Angular 22 |
+| UI | Angular 22 + Tailwind CSS |
 | Parser | Pure Java module, fixture-tested |
 
 ## Prerequisites
