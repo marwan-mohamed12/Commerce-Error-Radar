@@ -28,6 +28,8 @@ class LogSourceResolverTest {
 
         assertTrue(decision.demo());
         assertEquals(sample, decision.file());
+        assertTrue(decision.message().startsWith("DEMO"));
+        assertTrue(decision.message().contains(sample.toAbsolutePath().normalize().toString()));
     }
 
     @Test
@@ -74,6 +76,8 @@ class LogSourceResolverTest {
 
         assertTrue(decision.live());
         assertEquals(live, decision.file());
+        assertTrue(decision.message().startsWith("LIVE"));
+        assertTrue(decision.message().contains(live.toAbsolutePath().normalize().toString()));
     }
 
     @Test

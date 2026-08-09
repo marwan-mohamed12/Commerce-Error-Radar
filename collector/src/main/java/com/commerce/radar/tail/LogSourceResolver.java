@@ -39,7 +39,7 @@ public final class LogSourceResolver {
                         "LIVE",
                         file,
                         watch,
-                        "Tailing " + file.getFileName()
+                        "LIVE tailing " + file.toAbsolutePath().normalize()
                 );
             }
             String watched = watch == null ? hybrisHome.toString() : watch.toString();
@@ -56,7 +56,7 @@ public final class LogSourceResolver {
                     "DEMO",
                     sample,
                     null,
-                    "No Hybris home — replaying sample log " + sample.getFileName()
+                    "DEMO replaying sample log " + sample.toAbsolutePath().normalize()
             );
         }
         return new Decision(
