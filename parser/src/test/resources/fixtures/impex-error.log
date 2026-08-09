@@ -1,0 +1,10 @@
+INFO  [impex reader] [ImpExReader] importing resource products-delta.impex
+ERROR [impex reader] [ImpExReader] unknown catalog version electronicsProductCatalog:Online while importing products-delta.impex
+de.hybris.platform.impex.jalo.ImpExException: unknown catalog version electronicsProductCatalog:Online
+	at de.hybris.platform.impex.jalo.imp.ImpExImportReader.readLine(ImpExImportReader.java:512)
+	at de.hybris.platform.impex.jalo.Importer.importNext(Importer.java:246)
+	at com.yourcompany.initialdata.setup.CoreDataImporter.importImpexFile(CoreDataImporter.java:77)
+	at com.yourcompany.initialdata.setup.CoreDataImporter.importProducts(CoreDataImporter.java:51)
+	at de.hybris.platform.core.initialization.SystemSetupCollector.executeMethods(SystemSetupCollector.java:118)
+WARN  [impex reader] [ImpExReader] aborting import of products-delta.impex
+INFO  [impex reader] [ImpExReader] import stopped

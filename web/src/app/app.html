@@ -1,0 +1,102 @@
+<div class="shell">
+  <header class="top">
+    <div class="brand">
+      <span class="mark">Radar</span>
+      <span class="sub">Hybris console</span>
+    </div>
+
+    <div class="live" [class.is-on]="radar.connected() && radar.status()?.live">
+      <span class="dot" aria-hidden="true"></span>
+      <span>{{ radar.status()?.mode || 'IDLE' }}</span>
+      <span class="sep">·</span>
+      <span class="file" [title]="radar.status()?.logPath || ''">{{ logName() }}</span>
+      <span class="sep">·</span>
+      <span>{{ radar.status()?.linesRead || 0 }} lines</span>
+    </div>
+
+    <label class="search">
+      <span class="sr">Search</span>
+      <input
+        type="search"
+        placeholder="Class, message, fingerprint"
+        [value]="search()"
+        (input)="onSearch($any($event.target).value)"
+      />
+    </label>
+
+    <button type="button" class="ghost" (click)="showOpen.set(!showOpen())">Open log</button>
+  </header>
+
+  @if (radar.error()) {
+    <p class="banner">{{ radar.error() }} — start the collector on port 8088.</p>
+  }
+
+  @if (showOpen()) {
+    <form class="open" (submit)="$event.preventDefault(); openSelected()">
+      <input
+        type="text"
+        placeholder="C:\hybris\hybris\log\tomcat\console-20260809.log"
+        [value]="openPath()"
+        (input)="openPath.set($any($event.target).value)"
+      />
+      <label class="check">
+        <input type="checkbox" [checked]="replay()" (change)="replay.set($any($event.target).checked)" />
+        Replay whole file
+      </label>
+      <button type="submit" class="ghost">Tail this file</button>
+    </form>
+  }
+
+  <div class="filters">
+    <div class="seg" role="group" aria-label="Level">
+      @for (level of ['ALL', 'ERROR', 'WARN']; track level) {
+        <button
+          type="button"
+          [class.is-on]="radar.filters().level === level"
+          (click)="radar.setFilter('level', $any(level))"
+        >
+          {{ level }}
+        </button>
+      }
+    </div>
+
+    <div class="chips" role="group" aria-label="Kind">
+      @for (kind of kinds; track kind) {
+        <button
+          type="button"
+          [class.is-on]="radar.filters().kind === kind"
+          (click)="radar.setFilter('kind', kind)"
+        >
+          {{ kind === 'FLEXIBLE_SEARCH' ? 'FS' : kind.replaceAll('_', ' ') }}
+        </button>
+      }
+    </div>
+
+    <label class="check mine">
+      <input
+        type="checkbox"
+        [checked]="radar.filters().mineOnly"
+        (change)="radar.setFilter('mineOnly', $any($event.target).checked)"
+      />
+      Mine only
+    </label>
+  </div>
+
+  <main class="desk">
+    <section class="inbox" aria-label="Issues">
+      <app-issue-list
+        [issues]="radar.issues()"
+        [selected]="radar.selectedFingerprint()"
+        [flash]="radar.flashFingerprint()"
+        (pick)="radar.select($event)"
+      />
+    </section>
+    <section class="stage" aria-label="Selected issue">
+      <app-issue-detail
+        [detail]="radar.detail()"
+        [prefix]="radar.status()?.customPackagePrefix || 'com.yourcompany'"
+        (mute)="radar.mute($event.fingerprint, $event.muted)"
+      />
+    </section>
+  </main>
+</div>

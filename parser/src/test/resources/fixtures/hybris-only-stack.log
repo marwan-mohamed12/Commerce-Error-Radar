@@ -1,0 +1,9 @@
+INFO  [hybrisHTTP8] [DefaultSessionService] storing attribute
+ERROR [hybrisHTTP8] [DefaultSessionService] session replication failed
+java.lang.IllegalStateException: Unable to serialize session
+	at de.hybris.platform.servicelayer.session.impl.DefaultSessionService.setAttribute(DefaultSessionService.java:188)
+	at de.hybris.platform.jalo.JaloSession.setAttribute(JaloSession.java:1455)
+	at org.apache.catalina.session.StandardSession.setAttribute(StandardSession.java:1435)
+	at org.apache.catalina.connector.Request.doGetSession(Request.java:3041)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+INFO  [hybrisHTTP8] [DefaultSessionService] recovered

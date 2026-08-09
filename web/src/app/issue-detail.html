@@ -1,0 +1,97 @@
+@if (detail(); as d) {
+  <article class="detail">
+    <header class="head">
+      <div class="kicker">
+        <span class="level" [class.is-error]="d.issue.level !== 'WARN'" [class.is-warn]="d.issue.level === 'WARN'">
+          {{ d.issue.level }}
+        </span>
+        <span class="kind">{{ kindLabel(d.issue.kind) }}</span>
+        @if (d.issue.hasCustomFrame) {
+          <span class="mine">your package</span>
+        }
+        <span class="count">seen ×{{ d.issue.count }}</span>
+      </div>
+      <h1>{{ d.issue.title }}</h1>
+      <p class="message">{{ event()?.message || d.issue.lastMessage }}</p>
+      <div class="when">
+        <span>{{ clock(d.issue.lastSeen) }}</span>
+        <span>{{ rel(d.issue.lastSeen) }}</span>
+        @if (event()?.logger) {
+          <span class="mono">{{ event()?.logger }}</span>
+        }
+        @if (event()?.thread) {
+          <span class="mono">{{ event()?.thread }}</span>
+        }
+      </div>
+      <div class="actions">
+        <button type="button" class="btn" (click)="copyStack()">
+          {{ copied() ? 'Copied' : 'Copy stack' }}
+        </button>
+        <button type="button" class="btn" (click)="toggleMute()">
+          {{ d.issue.muted ? 'Unmute' : 'Mute fingerprint' }}
+        </button>
+      </div>
+    </header>
+
+    @if (ids().length) {
+      <section class="ids">
+        <h2>Business ids</h2>
+        <dl>
+          @for (pair of ids(); track pair[0]) {
+            <div>
+              <dt>{{ pair[0] }}</dt>
+              <dd>{{ pair[1] }}</dd>
+            </div>
+          }
+        </dl>
+      </section>
+    }
+
+    <section class="stack-wrap">
+      <h2>Stack</h2>
+      <ol class="stack">
+        @for (block of blocks(); track $index) {
+          @if (block.type === 'line' && block.line) {
+            <li
+              class="line"
+              [class.is-mine]="block.line.mine"
+              [class.is-hybris]="block.line.hybris"
+              [class.is-cause]="block.line.kind === 'cause' || block.line.kind === 'type'"
+            >
+              {{ block.line.text }}
+            </li>
+          } @else if (block.hidden) {
+            <li class="group">
+              <button type="button" class="fold" (click)="toggleGroup($index)">
+                {{ isOpen($index) ? 'Hide' : 'Show' }}
+                {{ block.hidden.length }} Hybris / framework frames
+              </button>
+              @if (isOpen($index)) {
+                <ol>
+                  @for (line of block.hidden; track $index) {
+                    <li class="line is-dim">{{ line.text }}</li>
+                  }
+                </ol>
+              }
+            </li>
+          }
+        }
+      </ol>
+    </section>
+
+    @if (event()?.contextText) {
+      <section class="context">
+        <button type="button" class="fold" (click)="showContext.set(!showContext())">
+          {{ showContext() ? 'Hide' : 'Show' }} preceding context
+        </button>
+        @if (showContext()) {
+          <pre>{{ event()?.contextText }}</pre>
+        }
+      </section>
+    }
+  </article>
+} @else {
+  <div class="blank">
+    <p>Select an issue.</p>
+  </div>
+}

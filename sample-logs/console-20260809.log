@@ -1,0 +1,72 @@
+2026-08-09 09:14:01,102 INFO  [localhost-startStop-1] [HybrisContextLoaderListener] Starting Spring root WebApplicationContext
+2026-08-09 09:14:12,440 INFO  [localhost-startStop-1] [Tenant] Master tenant started
+2026-08-09 09:15:03,221 INFO  [hybrisHTTP23] [DefaultCommerceCartService] Calculating cart 00001234
+2026-08-09 09:15:03,228 ERROR [hybrisHTTP23] [DefaultCartFacade] Failed to add product to cart productCode=23355 userId=customer@shop.test
+java.lang.NullPointerException: Cannot invoke "de.hybris.platform.core.model.product.ProductModel.getCode()" because "product" is null
+	at com.yourcompany.facades.impl.DefaultCartFacade.addToCart(DefaultCartFacade.java:142)
+	at com.yourcompany.facades.impl.DefaultCartFacade.addToCart(DefaultCartFacade.java:118)
+	at de.hybris.platform.commercefacades.order.impl.DefaultCartFacade.addToCart(DefaultCartFacade.java:210)
+	at de.hybris.platform.commercewebservices.core.v2.controller.CartsController.addCartEntry(CartsController.java:388)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:255)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:195)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+2026-08-09 09:15:03,401 INFO  [hybrisHTTP23] [SessionFilter] request completed
+2026-08-09 09:16:11,018 INFO  [hybrisHTTP24] [DefaultCommerceCartService] Calculating cart 00001235
+2026-08-09 09:16:11,022 ERROR [hybrisHTTP24] [DefaultCartFacade] Failed to add product to cart productCode=23355
+java.lang.NullPointerException: Cannot invoke "de.hybris.platform.core.model.product.ProductModel.getCode()" because "product" is null
+	at com.yourcompany.facades.impl.DefaultCartFacade.addToCart(DefaultCartFacade.java:142)
+	at com.yourcompany.facades.impl.DefaultCartFacade.addToCart(DefaultCartFacade.java:118)
+	at de.hybris.platform.commercefacades.order.impl.DefaultCartFacade.addToCart(DefaultCartFacade.java:210)
+	at de.hybris.platform.commercewebservices.core.v2.controller.CartsController.addCartEntry(CartsController.java:388)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:255)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:195)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+2026-08-09 09:16:11,088 INFO  [hybrisHTTP24] [SessionFilter] request completed
+2026-08-09 09:20:00,004 INFO  [CronJobPerformable] [solrIncrementalUpdateCronJob] Starting cronjob solrIncrementalUpdate
+2026-08-09 09:20:00,118 ERROR [CronJobPerformable] [solrIncrementalUpdateCronJob] CronJob solrIncrementalUpdate failed
+de.hybris.platform.servicelayer.exceptions.ModelNotFoundException: No result for FlexibleSearch: SELECT {pk} FROM {SolrIndexedType} WHERE {identifier}=?id
+	at de.hybris.platform.servicelayer.search.impl.DefaultFlexibleSearchService.searchUnique(DefaultFlexibleSearchService.java:246)
+	at com.yourcompany.solr.jobs.IncrementalIndexJob.perform(IncrementalIndexJob.java:88)
+	at de.hybris.platform.servicelayer.cronjob.AbstractJobPerformable.perform(AbstractJobPerformable.java:42)
+	at de.hybris.platform.cronjob.jalo.Job.execute(Job.java:1345)
+	at de.hybris.platform.cronjob.jalo.Job.performCronJob(Job.java:845)
+2026-08-09 09:20:00,140 INFO  [CronJobPerformable] [solrIncrementalUpdateCronJob] finished with ERROR
+2026-08-09 09:22:44,510 INFO  [impex reader] [ImpExReader] importing resource products-delta.impex
+2026-08-09 09:22:44,612 ERROR [impex reader] [ImpExReader] unknown catalog version electronicsProductCatalog:Online while importing products-delta.impex
+de.hybris.platform.impex.jalo.ImpExException: unknown catalog version electronicsProductCatalog:Online
+	at de.hybris.platform.impex.jalo.imp.ImpExImportReader.readLine(ImpExImportReader.java:512)
+	at de.hybris.platform.impex.jalo.Importer.importNext(Importer.java:246)
+	at com.yourcompany.initialdata.setup.CoreDataImporter.importImpexFile(CoreDataImporter.java:77)
+	at com.yourcompany.initialdata.setup.CoreDataImporter.importProducts(CoreDataImporter.java:51)
+	at de.hybris.platform.core.initialization.SystemSetupCollector.executeMethods(SystemSetupCollector.java:118)
+2026-08-09 09:22:44,640 WARN  [impex reader] [ImpExReader] aborting import of products-delta.impex
+2026-08-09 09:22:44,641 INFO  [impex reader] [ImpExReader] import stopped
+2026-08-09 09:25:10,003 WARN  [solr indexer] [SolrIndexerHotUpdateHandler] Solr ping failed for endpoint http://localhost:8983/solr/master_electronics_backoffice/admin/ping
+	at de.hybris.platform.solrfacetsearch.solr.impl.SolrStandaloneSearchProvider.ping(SolrStandaloneSearchProvider.java:201)
+	at org.apache.solr.client.solrj.impl.HttpSolrClient.request(HttpSolrClient.java:266)
+2026-08-09 09:25:10,020 INFO  [solr indexer] [SolrIndexerHotUpdateHandler] retry scheduled
+2026-08-09 09:28:33,771 ERROR [hybrisHTTP8] [DefaultSessionService] session replication failed
+java.lang.IllegalStateException: Unable to serialize session
+	at de.hybris.platform.servicelayer.session.impl.DefaultSessionService.setAttribute(DefaultSessionService.java:188)
+	at de.hybris.platform.jalo.JaloSession.setAttribute(JaloSession.java:1455)
+	at org.apache.catalina.session.StandardSession.setAttribute(StandardSession.java:1435)
+	at org.apache.catalina.connector.Request.doGetSession(Request.java:3041)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2026-08-09 09:28:33,780 INFO  [hybrisHTTP8] [DefaultSessionService] recovered
+2026-08-09 09:31:02,114 ERROR [hybrisHTTP11] [DefaultProductFacade] FlexibleSearch failed for product code=23355
+de.hybris.platform.servicelayer.search.exceptions.FlexibleSearchException: cannot search unknown type 'Product2'
+	at de.hybris.platform.servicelayer.search.impl.DefaultFlexibleSearchService.search(DefaultFlexibleSearchService.java:168)
+	at com.yourcompany.core.daos.impl.DefaultProductDao.findByCode(DefaultProductDao.java:54)
+	at com.yourcompany.facades.impl.DefaultProductFacade.getProductForCode(DefaultProductFacade.java:71)
+	at de.hybris.platform.commercewebservices.core.v2.controller.ProductsController.getProduct(ProductsController.java:210)
+2026-08-09 09:31:02,140 INFO  [hybrisHTTP11] [SessionFilter] request completed
+2026-08-09 09:40:00,004 INFO  [CronJobPerformable] [solrIncrementalUpdateCronJob] Starting cronjob solrIncrementalUpdate
+2026-08-09 09:40:00,090 ERROR [CronJobPerformable] [solrIncrementalUpdateCronJob] CronJob solrIncrementalUpdate failed
+de.hybris.platform.servicelayer.exceptions.ModelNotFoundException: No result for FlexibleSearch: SELECT {pk} FROM {SolrIndexedType} WHERE {identifier}=?id
+	at de.hybris.platform.servicelayer.search.impl.DefaultFlexibleSearchService.searchUnique(DefaultFlexibleSearchService.java:246)
+	at com.yourcompany.solr.jobs.IncrementalIndexJob.perform(IncrementalIndexJob.java:88)
+	at de.hybris.platform.servicelayer.cronjob.AbstractJobPerformable.perform(AbstractJobPerformable.java:42)
+	at de.hybris.platform.cronjob.jalo.Job.execute(Job.java:1345)
+2026-08-09 09:40:00,101 INFO  [CronJobPerformable] [solrIncrementalUpdateCronJob] finished with ERROR

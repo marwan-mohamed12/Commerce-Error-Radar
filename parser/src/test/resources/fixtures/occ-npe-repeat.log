@@ -1,0 +1,12 @@
+INFO  [hybrisHTTP24] [DefaultCommerceCartService] Calculating cart 00009999
+ERROR [hybrisHTTP24] [DefaultCartFacade] Failed to add product to cart productCode=99001
+java.lang.NullPointerException: Cannot invoke "de.hybris.platform.core.model.product.ProductModel.getCode()" because "product" is null
+	at com.yourcompany.facades.impl.DefaultCartFacade.addToCart(DefaultCartFacade.java:142)
+	at com.yourcompany.facades.impl.DefaultCartFacade.addToCart(DefaultCartFacade.java:118)
+	at de.hybris.platform.commercefacades.order.impl.DefaultCartFacade.addToCart(DefaultCartFacade.java:210)
+	at de.hybris.platform.commercewebservices.core.v2.controller.CartsController.addCartEntry(CartsController.java:388)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:255)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:195)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1191)
+INFO  [hybrisHTTP24] [SessionFilter] request completed

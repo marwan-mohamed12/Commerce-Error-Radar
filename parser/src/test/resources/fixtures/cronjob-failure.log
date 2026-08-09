@@ -1,0 +1,9 @@
+INFO  [CronJobPerformable] [solrIncrementalUpdateCronJob] Starting cronjob solrIncrementalUpdate
+ERROR [CronJobPerformable] [solrIncrementalUpdateCronJob] CronJob solrIncrementalUpdate failed
+de.hybris.platform.servicelayer.exceptions.ModelNotFoundException: No result for FlexibleSearch: SELECT {pk} FROM {SolrIndexedType} WHERE {identifier}=?id
+	at de.hybris.platform.servicelayer.search.impl.DefaultFlexibleSearchService.searchUnique(DefaultFlexibleSearchService.java:246)
+	at com.yourcompany.solr.jobs.IncrementalIndexJob.perform(IncrementalIndexJob.java:88)
+	at de.hybris.platform.servicelayer.cronjob.AbstractJobPerformable.perform(AbstractJobPerformable.java:42)
+	at de.hybris.platform.cronjob.jalo.Job.execute(Job.java:1345)
+	at de.hybris.platform.cronjob.jalo.Job.performCronJob(Job.java:845)
+INFO  [CronJobPerformable] [solrIncrementalUpdateCronJob] finished with ERROR

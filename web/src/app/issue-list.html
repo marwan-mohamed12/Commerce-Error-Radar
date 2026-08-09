@@ -1,0 +1,34 @@
+<ul class="list" role="listbox">
+  @for (issue of issues(); track issue.fingerprint) {
+    <li>
+      <button
+        type="button"
+        class="row"
+        [class.is-selected]="selected() === issue.fingerprint"
+        [class.is-flash]="flash() === issue.fingerprint"
+        [class.is-error]="issue.level === 'ERROR' || issue.level === 'FATAL'"
+        [class.is-warn]="issue.level === 'WARN'"
+        (click)="pick.emit(issue.fingerprint)"
+      >
+        <span class="rail" aria-hidden="true"></span>
+        <span class="meta">
+          <span class="level">{{ issue.level }}</span>
+          <span class="kind">{{ kindLabel(issue.kind) }}</span>
+          @if (issue.hasCustomFrame) {
+            <span class="mine">mine</span>
+          }
+        </span>
+        <span class="title">{{ issue.title }}</span>
+        <span class="foot">
+          <span class="count">×{{ issue.count }}</span>
+          <span class="when">{{ rel(issue.lastSeen) }}</span>
+        </span>
+      </button>
+    </li>
+  } @empty {
+    <li class="empty">
+      <p>Quiet for now.</p>
+      <p class="hint">ERROR and WARN from the Hybris console will land here and stay put.</p>
+    </li>
+  }
+</ul>

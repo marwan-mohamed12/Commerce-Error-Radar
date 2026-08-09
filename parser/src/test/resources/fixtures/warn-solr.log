@@ -1,0 +1,6 @@
+INFO  [solr indexer] [SolrIndexerHotUpdateHandler] checking cluster health
+WARN  [solr indexer] [SolrIndexerHotUpdateHandler] Solr ping failed for endpoint http://localhost:8983/solr/master_electronics_backoffice/admin/ping
+	at de.hybris.platform.solrfacetsearch.solr.impl.SolrStandaloneSearchProvider.ping(SolrStandaloneSearchProvider.java:201)
+	at org.apache.solr.client.solrj.impl.HttpSolrClient.request(HttpSolrClient.java:266)
+	at org.apache.solr.client.solrj.SolrRequest.process(SolrRequest.java:214)
+INFO  [solr indexer] [SolrIndexerHotUpdateHandler] retry scheduled
