@@ -1,28 +1,15 @@
 <div class="flex min-h-dvh flex-col">
-  <header
-    class="sticky top-0 z-20 border-b border-line/80 bg-ink-2/80 px-4 py-3 backdrop-blur-xl sm:px-5 lg:px-6"
-  >
-    <div class="flex flex-col gap-3 lg:flex-row lg:items-center">
-      <div class="flex items-center justify-between gap-3 lg:justify-start">
-        <div class="flex items-baseline gap-2.5">
-          <span class="font-display text-[1.65rem] font-semibold tracking-[-0.04em] text-fog">Radar</span>
-          <span class="hidden font-mono text-[0.68rem] uppercase tracking-[0.14em] text-steel sm:inline">
-            Hybris console
-          </span>
+  <header class="sticky top-0 z-20 border-b border-rule bg-canvas-2/90 backdrop-blur-md">
+    <div class="grid gap-3 px-4 py-3 sm:px-5 lg:grid-cols-[auto_1fr_auto] lg:items-center lg:px-6">
+      <div class="flex items-center gap-3">
+        <div>
+          <p class="font-display text-[1.45rem] leading-none font-semibold tracking-[-0.03em] text-copy">Radar</p>
+          <p class="mt-1 font-mono text-[0.65rem] uppercase tracking-[0.14em] text-mute">Hybris console</p>
         </div>
-        <button
-          type="button"
-          class="rounded-lg border border-line px-3 py-2 font-mono text-[0.68rem] uppercase tracking-[0.08em] text-fog transition hover:border-brass hover:text-brass lg:hidden"
-          (click)="showOpen.set(!showOpen())"
-        >
-          Open log
-        </button>
       </div>
 
-      <div class="flex min-w-0 flex-1 flex-wrap items-center gap-2 text-steel">
-        <span
-          class="inline-flex items-center gap-2 rounded-full border border-line bg-panel px-2.5 py-1 font-mono text-[0.7rem] uppercase tracking-[0.08em]"
-        >
+      <div class="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-quiet">
+        <span class="inline-flex items-center gap-2 font-mono text-[0.72rem] uppercase tracking-[0.08em]">
           <span
             class="live-dot"
             [class.live-dot-on]="radar.connected() && radar.status()?.live"
@@ -30,26 +17,20 @@
           ></span>
           {{ radar.status()?.mode || 'IDLE' }}
         </span>
-        <span
-          class="max-w-[14rem] truncate font-mono text-[0.75rem] text-mist sm:max-w-[22rem]"
-          [title]="radar.status()?.logPath || ''"
-        >
+        <span class="max-w-[18rem] truncate font-mono text-[0.78rem]" [title]="radar.status()?.logPath || ''">
           {{ logName() }}
         </span>
-        <span class="hidden font-mono text-[0.72rem] sm:inline">
-          {{ radar.status()?.linesRead || 0 }} lines
-        </span>
-        <span class="hidden font-mono text-[0.72rem] md:inline">
-          {{ radar.issues().length }} issues
+        <span class="hidden font-mono text-[0.72rem] text-mute sm:inline">
+          {{ radar.issues().length }} issues · {{ radar.status()?.linesRead || 0 }} lines
         </span>
       </div>
 
       <div class="flex items-center gap-2">
-        <label class="relative min-w-0 flex-1 lg:w-72 lg:flex-none">
-          <span class="sr-only">Search class, message, or fingerprint</span>
+        <label class="min-w-0 flex-1 lg:w-64 lg:flex-none">
+          <span class="sr-only">Search</span>
           <input
             type="search"
-            class="w-full rounded-xl border border-line bg-ink px-3 py-2.5 text-sm text-fog outline-none placeholder:text-steel/80 focus:border-brass focus:ring-2 focus:ring-brass/30"
+            class="w-full rounded-lg border border-rule bg-surface px-3 py-2 text-sm text-copy outline-none placeholder:text-mute focus:border-brass focus:ring-2 focus:ring-brass/25"
             placeholder="Search class or message"
             [value]="search()"
             (input)="onSearch($any($event.target).value)"
@@ -57,106 +38,101 @@
         </label>
         <button
           type="button"
-          class="hidden rounded-xl border border-line px-3 py-2.5 font-mono text-[0.68rem] uppercase tracking-[0.08em] text-fog transition hover:border-brass hover:text-brass lg:inline-flex"
+          class="shrink-0 rounded-lg border border-rule px-2.5 py-2 text-sm text-quiet hover:border-brass hover:text-brass"
+          [attr.aria-label]="theme.theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'"
+          (click)="theme.toggle()"
+        >
+          {{ theme.theme() === 'dark' ? 'Light' : 'Dark' }}
+        </button>
+        <button
+          type="button"
+          class="shrink-0 rounded-lg border border-rule px-2.5 py-2 text-sm text-quiet hover:border-brass hover:text-brass"
           (click)="showOpen.set(!showOpen())"
         >
           Open log
         </button>
       </div>
     </div>
+
+    <div
+      class="flex flex-col gap-2 border-t border-rule px-4 py-2 sm:flex-row sm:items-center sm:px-5 lg:px-6"
+    >
+      <div class="inline-flex rounded-lg border border-rule p-0.5" role="group" aria-label="Level">
+        @for (level of ['ALL', 'ERROR', 'WARN']; track level) {
+          <button
+            type="button"
+            class="rounded-md px-3 py-1.5 text-[0.75rem] font-medium"
+            [class.bg-raised]="radar.filters().level === level"
+            [class.text-copy]="radar.filters().level === level"
+            [class.text-mute]="radar.filters().level !== level"
+            (click)="radar.setFilter('level', $any(level))"
+          >
+            {{ level === 'ALL' ? 'All' : level }}
+          </button>
+        }
+      </div>
+
+      <label class="flex items-center gap-2 text-[0.75rem] text-mute">
+        Type
+        <select
+          class="rounded-lg border border-rule bg-surface px-2.5 py-1.5 text-sm text-copy outline-none focus:border-brass"
+          [value]="radar.filters().kind"
+          (change)="onKind($any($event.target).value)"
+        >
+          @for (kind of kinds; track kind) {
+            <option [value]="kind">{{ chipLabel(kind) }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="inline-flex items-center gap-2 text-[0.75rem] text-quiet sm:ml-auto">
+        <input
+          type="checkbox"
+          class="size-3.5 accent-brass"
+          [checked]="radar.filters().mineOnly"
+          (change)="radar.setFilter('mineOnly', $any($event.target).checked)"
+        />
+        Only my packages
+      </label>
+    </div>
   </header>
 
   @if (radar.error()) {
-    <p class="border-b border-ember/30 bg-ember/15 px-4 py-2.5 text-sm text-fog sm:px-6">
+    <p class="border-b border-ember/30 bg-ember/10 px-4 py-2.5 text-sm text-copy sm:px-6">
       {{ radar.error() }} — start the collector on port 8088, then refresh.
     </p>
   }
 
   @if (showOpen()) {
     <form
-      class="flex flex-col gap-3 border-b border-line bg-panel/80 px-4 py-3 sm:flex-row sm:items-center sm:px-6"
+      class="flex flex-col gap-3 border-b border-rule bg-surface px-4 py-3 sm:flex-row sm:items-center sm:px-6"
       (submit)="$event.preventDefault(); openSelected()"
     >
       <input
         type="text"
-        class="min-w-0 flex-1 rounded-xl border border-line bg-ink px-3 py-2.5 text-sm text-fog outline-none placeholder:text-steel/80 focus:border-brass focus:ring-2 focus:ring-brass/30"
+        class="min-w-0 flex-1 rounded-lg border border-rule bg-canvas px-3 py-2 text-sm text-copy outline-none placeholder:text-mute focus:border-brass focus:ring-2 focus:ring-brass/25"
         placeholder="C:\hybris\hybris\log\tomcat\console-20260809.log"
         [value]="openPath()"
         (input)="openPath.set($any($event.target).value)"
       />
-      <label class="inline-flex items-center gap-2 font-mono text-[0.7rem] uppercase tracking-[0.06em] text-steel">
+      <label class="inline-flex items-center gap-2 text-[0.75rem] text-quiet">
         <input
           type="checkbox"
-          class="size-4 accent-brass"
+          class="size-3.5 accent-brass"
           [checked]="replay()"
           (change)="replay.set($any($event.target).checked)"
         />
         Replay whole file
       </label>
-      <button
-        type="submit"
-        class="rounded-xl border border-brass/70 bg-brass/15 px-3 py-2.5 font-mono text-[0.68rem] uppercase tracking-[0.08em] text-brass"
-      >
+      <button type="submit" class="rounded-lg bg-brass px-3 py-2 text-sm font-medium text-canvas">
         Tail this file
       </button>
     </form>
   }
 
-  <div class="flex flex-col gap-3 border-b border-line/80 px-4 py-3 sm:px-5 lg:flex-row lg:items-center lg:px-6">
-    <div class="flex flex-wrap gap-1.5" role="group" aria-label="Level">
-      @for (level of ['ALL', 'ERROR', 'WARN']; track level) {
-        <button
-          type="button"
-          class="rounded-full px-3 py-1.5 font-mono text-[0.68rem] uppercase tracking-[0.08em] transition"
-          [class.bg-raised]="radar.filters().level === level"
-          [class.text-fog]="radar.filters().level === level"
-          [class.ring-1]="radar.filters().level === level"
-          [class.ring-line]="radar.filters().level === level"
-          [class.text-steel]="radar.filters().level !== level"
-          (click)="radar.setFilter('level', $any(level))"
-        >
-          {{ level }}
-        </button>
-      }
-    </div>
-
-    <div
-      class="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-0.5 [scrollbar-width:none] lg:mx-0 lg:flex-wrap lg:overflow-visible lg:px-0"
-      role="group"
-      aria-label="Kind"
-    >
-      @for (kind of kinds; track kind) {
-        <button
-          type="button"
-          class="shrink-0 rounded-full px-3 py-1.5 font-mono text-[0.68rem] uppercase tracking-[0.07em] transition"
-          [class.bg-raised]="radar.filters().kind === kind"
-          [class.text-fog]="radar.filters().kind === kind"
-          [class.ring-1]="radar.filters().kind === kind"
-          [class.ring-line]="radar.filters().kind === kind"
-          [class.text-steel]="radar.filters().kind !== kind"
-          (click)="radar.setFilter('kind', kind)"
-        >
-          {{ chipLabel(kind) }}
-        </button>
-      }
-    </div>
-
-    <label
-      class="inline-flex items-center gap-2 font-mono text-[0.7rem] uppercase tracking-[0.06em] text-steel lg:ml-auto"
-    >
-      <input
-        type="checkbox"
-        class="size-4 accent-brass"
-        [checked]="radar.filters().mineOnly"
-        (change)="radar.setFilter('mineOnly', $any($event.target).checked)"
-      />
-      Mine only
-    </label>
-  </div>
-
-  <main class="grid min-h-0 flex-1 lg:grid-cols-[minmax(18rem,28vw)_1fr]">
+  <main class="grid min-h-0 flex-1 lg:grid-cols-[minmax(20rem,32%)_1fr]">
     <section
-      class="min-h-0 overflow-auto border-line bg-panel/40 lg:border-r"
+      class="min-h-0 overflow-auto border-rule bg-surface/70 lg:border-r"
       [class.max-lg:hidden]="pane() === 'detail'"
       aria-label="Issues"
     >
@@ -167,11 +143,7 @@
         (pick)="pickIssue($event)"
       />
     </section>
-    <section
-      class="min-h-0 overflow-auto"
-      [class.max-lg:hidden]="pane() === 'list'"
-      aria-label="Selected issue"
-    >
+    <section class="min-h-0 overflow-auto bg-canvas" [class.max-lg:hidden]="pane() === 'list'" aria-label="Selected issue">
       <app-issue-detail
         [detail]="radar.detail()"
         [prefix]="radar.status()?.customPackagePrefix || 'com.yourcompany'"

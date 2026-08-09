@@ -3,6 +3,7 @@ import { IssueDetailView } from './issue-detail';
 import { IssueList } from './issue-list';
 import { ISSUE_KINDS } from './models';
 import { RadarService } from './radar.service';
+import { ThemeService } from './theme';
 import { fileName } from './time';
 
 @Component({
@@ -12,6 +13,7 @@ import { fileName } from './time';
 })
 export class App implements OnInit, OnDestroy {
   readonly radar = inject(RadarService);
+  readonly theme = inject(ThemeService);
   readonly kinds = ISSUE_KINDS;
   readonly search = signal('');
   readonly openPath = signal('');
@@ -39,6 +41,10 @@ export class App implements OnInit, OnDestroy {
     this.searchTimer = setTimeout(() => this.radar.setFilter('q', value), 200);
   }
 
+  onKind(value: string): void {
+    this.radar.setFilter('kind', value);
+  }
+
   logName(): string {
     return fileName(this.radar.status()?.logPath);
   }
@@ -58,8 +64,11 @@ export class App implements OnInit, OnDestroy {
   }
 
   chipLabel(kind: string): string {
+    if (kind === 'ALL') {
+      return 'All types';
+    }
     if (kind === 'FLEXIBLE_SEARCH') {
-      return 'FlexSearch';
+      return 'FlexibleSearch';
     }
     if (kind === 'MODEL_SAVE') {
       return 'Model save';

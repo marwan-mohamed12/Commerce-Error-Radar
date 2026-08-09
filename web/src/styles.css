@@ -1,22 +1,62 @@
 @import 'tailwindcss';
 
+/*
+  Semantic tokens. Dark = night Hybris boot. Light = cool printout paper
+  (blue-gray, not cream) so it does not read as the generic terracotta desk.
+*/
+:root,
+[data-theme='dark'] {
+  --radar-canvas: #10161d;
+  --radar-canvas-2: #151c24;
+  --radar-surface: #1b232e;
+  --radar-raised: #242d3a;
+  --radar-rule: #334050;
+  --radar-copy: #ebe6db;
+  --radar-quiet: #b4aea2;
+  --radar-mute: #87919e;
+  --radar-ember: #e07058;
+  --radar-honey: #d9a84a;
+  --radar-brass: #c9a36a;
+  --radar-signal: #5a9eae;
+  --radar-wash: radial-gradient(900px 420px at 8% -8%, color-mix(in srgb, #c9a36a 11%, transparent), transparent 62%),
+    radial-gradient(700px 380px at 100% 0%, color-mix(in srgb, #5a9eae 8%, transparent), transparent 55%),
+    linear-gradient(180deg, #141b23 0%, #10161d 34%);
+}
+
+[data-theme='light'] {
+  --radar-canvas: #e8edf2;
+  --radar-canvas-2: #f4f7fa;
+  --radar-surface: #fbfcfe;
+  --radar-raised: #eef2f6;
+  --radar-rule: #c5ced8;
+  --radar-copy: #1a2330;
+  --radar-quiet: #4a5563;
+  --radar-mute: #6b7785;
+  --radar-ember: #c44732;
+  --radar-honey: #9a6f12;
+  --radar-brass: #8a6918;
+  --radar-signal: #1f6f82;
+  --radar-wash: radial-gradient(800px 360px at 0% 0%, color-mix(in srgb, #8a6918 9%, transparent), transparent 55%),
+    linear-gradient(180deg, #f4f7fa 0%, #e8edf2 40%);
+}
+
 @theme {
   --font-sans: 'Sora', 'Segoe UI', ui-sans-serif, system-ui, sans-serif;
   --font-display: 'Fraunces', 'Times New Roman', ui-serif, serif;
   --font-mono: 'IBM Plex Mono', 'Consolas', ui-monospace, monospace;
 
-  --color-ink: #10161d;
-  --color-ink-2: #151c24;
-  --color-panel: #1c2430;
-  --color-raised: #252e3c;
-  --color-line: #334050;
-  --color-fog: #e7e2d6;
-  --color-mist: #b8b2a6;
-  --color-steel: #8a93a0;
-  --color-ember: #e07058;
-  --color-honey: #e0b15c;
-  --color-brass: #c9a36a;
-  --color-signal: #5a9eae;
+  --color-canvas: var(--radar-canvas);
+  --color-canvas-2: var(--radar-canvas-2);
+  --color-surface: var(--radar-surface);
+  --color-raised: var(--radar-raised);
+  --color-rule: var(--radar-rule);
+  --color-copy: var(--radar-copy);
+  --color-quiet: var(--radar-quiet);
+  --color-mute: var(--radar-mute);
+  --color-ember: var(--radar-ember);
+  --color-honey: var(--radar-honey);
+  --color-brass: var(--radar-brass);
+  --color-signal: var(--radar-signal);
 }
 
 @layer base {
@@ -26,28 +66,25 @@
   }
 
   body {
-    @apply bg-ink font-sans text-[15px] text-fog antialiased;
-    background-image:
-      radial-gradient(900px 420px at 8% -8%, color-mix(in srgb, var(--color-brass) 11%, transparent), transparent 62%),
-      radial-gradient(700px 380px at 100% 0%, color-mix(in srgb, var(--color-signal) 8%, transparent), transparent 55%),
-      linear-gradient(180deg, #141b23 0%, var(--color-ink) 32%);
+    @apply bg-canvas font-sans text-[15px] text-copy antialiased;
+    background-image: var(--radar-wash);
   }
 
   button,
-  input {
+  input,
+  select {
     font: inherit;
   }
 
   ::selection {
-    background: color-mix(in srgb, var(--color-brass) 42%, #000);
-    color: var(--color-fog);
+    background: color-mix(in srgb, var(--radar-brass) 40%, transparent);
   }
 }
 
 @keyframes radar-sweep {
   from {
     transform: translateY(-70%);
-    opacity: 0.85;
+    opacity: 0.8;
   }
   to {
     transform: translateY(70%);
@@ -57,12 +94,12 @@
 
 @layer utilities {
   .live-dot {
-    @apply size-2 shrink-0 rounded-full bg-steel;
+    @apply size-2 shrink-0 rounded-full bg-mute;
   }
 
   .live-dot-on {
     @apply bg-signal;
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-signal) 28%, transparent);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--radar-signal) 28%, transparent);
   }
 }
 

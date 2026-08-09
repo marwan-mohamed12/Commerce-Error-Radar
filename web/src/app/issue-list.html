@@ -1,53 +1,49 @@
-<ul class="flex flex-col gap-2 p-3 sm:p-4" role="listbox">
+<ul class="divide-y divide-rule" role="listbox">
   @for (issue of issues(); track issue.fingerprint) {
     <li>
       <button
         type="button"
-        class="relative w-full overflow-hidden rounded-2xl border px-3.5 py-3 text-left transition sm:px-4"
-        [class.border-line]="selected() !== issue.fingerprint"
-        [class.bg-ink-2/40]="selected() !== issue.fingerprint"
-        [class.border-brass/50]="selected() === issue.fingerprint"
+        class="relative flex w-full gap-3 px-4 py-3 text-left transition hover:bg-raised/70 sm:px-5"
         [class.bg-raised]="selected() === issue.fingerprint"
-        [class.ring-1]="selected() === issue.fingerprint"
-        [class.ring-brass/30]="selected() === issue.fingerprint"
         (click)="pick.emit(issue.fingerprint)"
       >
         @if (flash() === issue.fingerprint) {
           <span
-            class="radar-sweep pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-signal/25 to-transparent"
+            class="radar-sweep pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-signal/20 to-transparent"
             style="animation: radar-sweep 1.15s ease-out"
           ></span>
         }
         <span
-          class="absolute top-3 bottom-3 left-0 w-1 rounded-r-full"
+          class="mt-1.5 h-8 w-1 shrink-0 rounded-full"
           [class.bg-ember]="issue.level === 'ERROR' || issue.level === 'FATAL'"
           [class.bg-honey]="issue.level === 'WARN'"
           aria-hidden="true"
         ></span>
-        <span class="flex flex-wrap items-center gap-2 pl-2 font-mono text-[0.66rem] uppercase tracking-[0.08em]">
-          <span
-            class="rounded-md px-1.5 py-0.5"
-            [class.bg-ember/15]="issue.level !== 'WARN'"
-            [class.text-ember]="issue.level !== 'WARN'"
-            [class.bg-honey/15]="issue.level === 'WARN'"
-            [class.text-honey]="issue.level === 'WARN'"
-          >
-            {{ issue.level }}
+        <span class="min-w-0 flex-1">
+          <span class="block text-[0.95rem] leading-snug text-copy">{{ issue.title }}</span>
+          <span class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 font-mono text-[0.68rem] text-mute">
+            <span [class.text-ember]="issue.level !== 'WARN'" [class.text-honey]="issue.level === 'WARN'">
+              {{ issue.level }}
+            </span>
+            <span>·</span>
+            <span>{{ kindLabel(issue.kind) }}</span>
+            @if (issue.hasCustomFrame) {
+              <span class="text-brass">· mine</span>
+            }
+            <span class="ml-auto text-quiet">{{ rel(issue.lastSeen) }}</span>
           </span>
-          <span class="text-steel">{{ kindLabel(issue.kind) }}</span>
-          @if (issue.hasCustomFrame) {
-            <span class="text-brass">mine</span>
-          }
-          <span class="ml-auto rounded-full bg-ink px-2 py-0.5 text-fog">×{{ issue.count }}</span>
         </span>
-        <span class="mt-1.5 block pl-2 text-[0.95rem] leading-snug text-fog">{{ issue.title }}</span>
-        <span class="mt-1.5 block pl-2 font-mono text-[0.7rem] text-steel">{{ rel(issue.lastSeen) }}</span>
+        <span
+          class="mt-0.5 shrink-0 rounded-md bg-canvas px-1.5 py-0.5 font-mono text-[0.72rem] tabular-nums text-quiet"
+        >
+          {{ issue.count }}
+        </span>
       </button>
     </li>
   } @empty {
-    <li class="rounded-2xl border border-dashed border-line px-5 py-16 text-center">
-      <p class="font-display text-xl text-fog">Quiet for now</p>
-      <p class="mx-auto mt-2 max-w-[22ch] text-sm leading-relaxed text-steel">
+    <li class="px-6 py-20 text-center">
+      <p class="font-display text-xl text-copy">Quiet for now</p>
+      <p class="mx-auto mt-2 max-w-[28ch] text-sm leading-relaxed text-mute">
         ERROR and WARN from the Hybris console will land here and stay put.
       </p>
     </li>
