@@ -83,6 +83,19 @@ class HybrisLogParserTest {
     }
 
     @Test
+    void unwrapsTanukiWrapperConsoleAndIgnoresInfoDebug() {
+        ParsedEvent event = onlyEvent("wrapper-occ-npe.log");
+        assertEquals("ERROR", event.level());
+        assertEquals("DefaultCartFacade", event.logger());
+        assertEquals("hybrisHTTP23", event.thread());
+        assertTrue(event.message().contains("Failed to add product"));
+        assertEquals("NullPointerException", event.exceptionType());
+        assertTrue(event.hasCustomFrame());
+        assertTrue(event.fingerprint().contains("com.yourcompany.facades.impl.DefaultCartFacade.addToCart"));
+        assertFalse(event.rawText().contains("jvm 1"));
+    }
+
+    @Test
     void timestampedHeadersAreAccepted() {
         HybrisLogParser parser = new HybrisLogParser("com.yourcompany");
         List<String> lines = List.of(

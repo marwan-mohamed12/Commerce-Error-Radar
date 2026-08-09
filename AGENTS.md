@@ -95,7 +95,8 @@ Parent POM skips `spring-boot:run`; only `collector` runs the app. Always use `-
 
 ### Parser (`parser` module)
 
-- A log header with ERROR / WARN / FATAL starts an event.
+- Strip Tanuki wrapper columns (`INFO | jvm 1 | main | ts |`) before parsing; Hybris 2211 `console-*.log` uses that format.
+- A log header with ERROR / WARN / FATAL starts an event. INFO / DEBUG are not persisted.
 - Following `at `, `Caused by:`, `Suppressed:`, `... N more`, and exception-type lines belong to it.
 - The next normal log header closes the event.
 - Fingerprint = `ExceptionName` + first frame under `radar.custom-package-prefix`.

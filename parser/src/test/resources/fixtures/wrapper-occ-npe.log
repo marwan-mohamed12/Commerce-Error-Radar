@@ -1,0 +1,11 @@
+STATUS | wrapper  | main    | 2026/08/10 00:06:15.353 | --> Wrapper Started as Console
+INFO   | jvm 1    | main    | 2026/08/10 00:13:41.008 | DEBUG [hybrisHTTP23] [SapCartCalculationService] Calculate the cart
+INFO   | jvm 1    | main    | 2026/08/10 00:13:41.324 | INFO  [hybrisHTTP23] [DefaultCommerceCartService] Calculating cart 00001234
+INFO   | jvm 1    | main    | 2026/08/10 00:15:03.228 | ERROR [hybrisHTTP23] [DefaultCartFacade] Failed to add product to cart productCode=23355
+INFO   | jvm 1    | main    | 2026/08/10 00:15:03.228 | java.lang.NullPointerException: Cannot invoke "de.hybris.platform.core.model.product.ProductModel.getCode()" because "product" is null
+INFO   | jvm 1    | main    | 2026/08/10 00:15:03.229 | 	at com.yourcompany.facades.impl.DefaultCartFacade.addToCart(DefaultCartFacade.java:142)
+INFO   | jvm 1    | main    | 2026/08/10 00:15:03.229 | 	at com.yourcompany.facades.impl.DefaultCartFacade.addToCart(DefaultCartFacade.java:118)
+INFO   | jvm 1    | main    | 2026/08/10 00:15:03.229 | 	at de.hybris.platform.commercefacades.order.impl.DefaultCartFacade.addToCart(DefaultCartFacade.java:210)
+INFO   | jvm 1    | main    | 2026/08/10 00:15:03.230 | 	at de.hybris.platform.commercewebservices.core.v2.controller.CartsController.addCartEntry(CartsController.java:388)
+INFO   | jvm 1    | main    | 2026/08/10 00:15:03.401 | INFO  [hybrisHTTP23] [SessionFilter] request completed
+INFO   | jvm 1    | main    | 2026/08/10 00:15:03.500 | DEBUG [hybrisHTTP23] [SapCartCalculationService] Calculate the cart

@@ -35,7 +35,7 @@ public final class HybrisLogParser {
      * Feed one line. Returns a closed event when the previous event is finished.
      */
     public Optional<ParsedEvent> accept(String rawLine) {
-        String line = rawLine == null ? "" : rawLine.stripTrailing();
+        String line = LogLine.unwrapWrapper(rawLine == null ? "" : rawLine.stripTrailing());
         Optional<LogLine> header = LogLine.parseHeader(line);
 
         if (header.isPresent()) {

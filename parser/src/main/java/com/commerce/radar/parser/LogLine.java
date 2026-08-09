@@ -21,6 +21,15 @@ public record LogLine(
         String message,
         String raw
 ) {
+    /**
+     * Tanuki Service Wrapper line from {@code hybrisserver.bat} / {@code console-YYYYMMDD.log}:
+     * {@code INFO   | jvm 1    | main    | 2026/08/10 00:06:17.657 | ERROR [thread] [Logger] msg}
+     */
+    private static final Pattern WRAPPER = Pattern.compile(
+            "^(?:STATUS|INFO|ERROR|WARN|DEBUG)\\s+\\|\\s+[^|]+\\|\\s+[^|]+\\|\\s+"
+                    + "(?<wts>\\d{4}/\\d{2}/\\d{2} \\d{2}:\\d{2}:\\d{2}[.,]\\d{1,3})\\s+\\|\\s?(?<rest>.*)$"
+    );
+
     private static final Pattern TIMESTAMPED = Pattern.compile(
             "^(?<ts>\\d{4}-\\d{2}-\\d{2}[ T]\\d{2}:\\d{2}:\\d{2}[,.]\\d{1,3}|\\d{2}\\.\\d{2}\\.\\d{4} \\d{2}:\\d{2}:\\d{2}[,:]\\d{1,3})\\s+"
                     + "(?<level>ERROR|WARN|INFO|DEBUG|TRACE|FATAL)\\s+"
@@ -41,19 +50,37 @@ public record LogLine(
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS"),
             DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss,SSS"),
             DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS"),
+            DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss.SSS"),
+            DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss,SSS"),
             DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss,SSS"),
             DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss:SSS")
     );
+
+    /**
+     * Drop the Tanuki wrapper columns so the Hybris / Log4j payload can be parsed.
+     * Idempotent when the line is already a plain log line.
+     */
+    public static String unwrapWrapper(String raw) {
+        if (raw == null) {
+            return "";
+        }
+        String line = stripBom(raw);
+        Matcher wrapper = WRAPPER.matcher(line);
+        return wrapper.matches() ? wrapper.group("rest") : line;
+    }
 
     public static Optional<LogLine> parseHeader(String raw) {
         if (raw == null) {
             return Optional.empty();
         }
-        String line = stripBom(raw);
+        String original = stripBom(raw);
+        Instant wrapperTs = wrapperTimestamp(original);
+        String line = unwrapWrapper(original);
         Matcher ts = TIMESTAMPED.matcher(line);
         if (ts.matches()) {
+            Instant parsed = parseTimestamp(ts.group("ts"));
             return Optional.of(new LogLine(
-                    parseTimestamp(ts.group("ts")),
+                    parsed != null ? parsed : wrapperTs,
                     ts.group("level"),
                     emptyToBlank(ts.group("thread")),
                     emptyToBlank(ts.group("logger")),
@@ -64,7 +91,7 @@ public record LogLine(
         Matcher bare = BARE.matcher(line);
         if (bare.matches()) {
             return Optional.of(new LogLine(
-                    null,
+                    wrapperTs,
                     bare.group("level"),
                     emptyToBlank(bare.group("thread")),
                     emptyToBlank(bare.group("logger")),
@@ -85,7 +112,7 @@ public record LogLine(
         }
         // Plan rule: a line containing " ERROR " or " WARN " starts an event.
         // Also accept headers that begin with ERROR/WARN.
-        String line = stripBom(raw);
+        String line = unwrapWrapper(stripBom(raw));
         if (line.contains(" ERROR ") || line.contains(" WARN ") || line.contains(" FATAL ")) {
             return true;
         }
@@ -150,6 +177,14 @@ public record LogLine(
     public static String simpleName(String fqcn) {
         int dot = fqcn.lastIndexOf('.');
         return dot < 0 ? fqcn : fqcn.substring(dot + 1);
+    }
+
+    private static Instant wrapperTimestamp(String original) {
+        Matcher wrapper = WRAPPER.matcher(original);
+        if (!wrapper.matches()) {
+            return null;
+        }
+        return parseTimestamp(wrapper.group("wts"));
     }
 
     private static Instant parseTimestamp(String rawTs) {
