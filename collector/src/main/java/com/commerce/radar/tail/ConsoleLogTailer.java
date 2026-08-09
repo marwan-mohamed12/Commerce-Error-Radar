@@ -80,7 +80,7 @@ public class ConsoleLogTailer implements SmartLifecycle {
         Path initial = resolveInitialFile();
         if (initial != null) {
             open(initial, properties.isTailFromEnd() && !"DEMO".equals(status.getMode()) && !"REPLAY".equals(status.getMode()));
-        } else {
+        } else if (!"LIVE".equals(status.getMode())) {
             status.setMode("IDLE");
             status.setMessage("No console-*.log found. Set radar.hybris-home or HYBRIS_HOME.");
             log.warn("{}", status.getMessage());
@@ -248,6 +248,7 @@ public class ConsoleLogTailer implements SmartLifecycle {
             status.setHybrisHome(hybris.toString());
             status.setMode("LIVE");
             status.setMessage("Watching " + dir + " for console-*.log");
+            return null;
         }
         for (Path samples : sampleLogCandidates()) {
             if (samples == null || !Files.isDirectory(samples)) {
