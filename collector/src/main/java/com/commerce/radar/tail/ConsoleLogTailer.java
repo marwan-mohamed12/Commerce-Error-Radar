@@ -18,8 +18,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -77,13 +77,27 @@ public class ConsoleLogTailer implements SmartLifecycle {
             t.setDaemon(true);
             return t;
         });
-        Path initial = resolveInitialFile();
-        if (initial != null) {
-            open(initial, properties.isTailFromEnd() && !"DEMO".equals(status.getMode()) && !"REPLAY".equals(status.getMode()));
-        } else if (!"LIVE".equals(status.getMode())) {
-            status.setMode("IDLE");
-            status.setMessage("No console-*.log found. Set radar.hybris-home or HYBRIS_HOME.");
-            log.warn("{}", status.getMessage());
+        Path hybris = properties.resolvedHybrisHome();
+        if (hybris != null) {
+            int removed = repository.deleteDemoData();
+            if (removed > 0) {
+                log.info("Removed leftover DEMO issues ({}); radar.hybris-home is set", removed);
+            }
+        }
+        LogSourceResolver.Decision decision = LogSourceResolver.resolve(hybris, sampleLogCandidates());
+        status.setMode(decision.mode());
+        status.setMessage(decision.message());
+        if (hybris != null) {
+            status.setHybrisHome(hybris.toString());
+        }
+        log.info("{}", decision.message());
+        if (decision.file() != null) {
+            boolean fromEnd = properties.isTailFromEnd() && decision.live();
+            open(decision.file(), fromEnd);
+        } else if (decision.live()) {
+            log.warn("Hybris home {} has no console-*.log yet; will keep watching", hybris);
+        } else {
+            log.warn("{}", decision.message());
         }
         long interval = Math.max(200L, properties.getPollIntervalMs());
         executor.scheduleWithFixedDelay(this::tick, 0, interval, TimeUnit.MILLISECONDS);
@@ -164,7 +178,8 @@ public class ConsoleLogTailer implements SmartLifecycle {
         } catch (IOException e) {
             filePointer = 0L;
         }
-        String home = properties.getHybrisHome() == null ? "" : properties.getHybrisHome().toString();
+        Path homePath = properties.resolvedHybrisHome();
+        String home = homePath == null ? "" : homePath.toString();
         String mode = status.getMode() == null || "IDLE".equals(status.getMode())
                 ? (fromEnd ? "LIVE" : "REPLAY")
                 : status.getMode();
@@ -234,46 +249,6 @@ public class ConsoleLogTailer implements SmartLifecycle {
         }
     }
 
-    private Path resolveInitialFile() {
-        Path hybris = properties.getHybrisHome();
-        if (hybris != null && !hybris.toString().isBlank()) {
-            Path dir = ConsoleLogLocator.tomcatLogDir(hybris);
-            Optional<Path> newest = ConsoleLogLocator.newestConsoleLog(dir);
-            if (newest.isPresent()) {
-                status.setMode("LIVE");
-                status.setHybrisHome(hybris.toString());
-                return newest.get();
-            }
-            log.warn("Hybris home {} has no console-*.log yet; will keep watching {}", hybris, dir);
-            status.setHybrisHome(hybris.toString());
-            status.setMode("LIVE");
-            status.setMessage("Watching " + dir + " for console-*.log");
-            return null;
-        }
-        for (Path samples : sampleLogCandidates()) {
-            if (samples == null || !Files.isDirectory(samples)) {
-                continue;
-            }
-            Optional<Path> demo = ConsoleLogLocator.newestConsoleLog(samples);
-            if (demo.isEmpty()) {
-                try (var stream = Files.list(samples)) {
-                    demo = stream
-                            .filter(p -> p.getFileName().toString().endsWith(".log"))
-                            .max(ConsoleLogTailer::compareByMtime);
-                } catch (IOException ignored) {
-                    demo = Optional.empty();
-                }
-            }
-            if (demo.isPresent()) {
-                status.setMode("DEMO");
-                status.setMessage("No Hybris home — replaying sample log " + demo.get().getFileName());
-                log.warn("{}", status.getMessage());
-                return demo.get();
-            }
-        }
-        return null;
-    }
-
     private List<Path> sampleLogCandidates() {
         Path configured = properties.getSampleLogsDir();
         Path cwd = Path.of("").toAbsolutePath();
@@ -286,11 +261,12 @@ public class ConsoleLogTailer implements SmartLifecycle {
     }
 
     private Path resolveNewest() {
-        Path hybris = properties.getHybrisHome();
-        if (hybris != null && !hybris.toString().isBlank()) {
-            return ConsoleLogLocator.newestConsoleLog(ConsoleLogLocator.tomcatLogDir(hybris)).orElse(currentFile);
+        Path hybris = properties.resolvedHybrisHome();
+        if (hybris == null) {
+            return currentFile;
         }
-        return currentFile;
+        List<Path> dirs = ConsoleLogLocator.tomcatLogDirs(hybris);
+        return ConsoleLogLocator.newestIn(dirs.toArray(Path[]::new)).orElse(currentFile);
     }
 
     private Object statusSnapshot() {
@@ -336,10 +312,14 @@ public class ConsoleLogTailer implements SmartLifecycle {
     }
 
     public List<Path> watchedLogs() {
-        Path hybris = properties.getHybrisHome();
+        Path hybris = properties.resolvedHybrisHome();
         if (hybris == null) {
             return List.of();
         }
-        return ConsoleLogLocator.listConsoleLogs(ConsoleLogLocator.tomcatLogDir(hybris));
+        List<Path> found = new ArrayList<>();
+        for (Path dir : ConsoleLogLocator.tomcatLogDirs(hybris)) {
+            found.addAll(ConsoleLogLocator.listConsoleLogs(dir));
+        }
+        return found;
     }
 }

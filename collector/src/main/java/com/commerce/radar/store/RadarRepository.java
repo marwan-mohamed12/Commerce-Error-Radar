@@ -62,6 +62,20 @@ public class RadarRepository {
         return rows.stream().findFirst();
     }
 
+    /**
+     * Drop leftover DEMO replay rows so a LIVE session does not keep showing sample issues.
+     *
+     * @return number of issues removed
+     */
+    public int deleteDemoData() {
+        jdbc.update("DELETE FROM events WHERE run_id IN (SELECT id FROM runs WHERE upper(ifnull(mode, '')) = 'DEMO')");
+        int issues = jdbc.update(
+                "DELETE FROM issues WHERE fingerprint NOT IN (SELECT DISTINCT fingerprint FROM events)"
+        );
+        jdbc.update("DELETE FROM runs WHERE upper(ifnull(mode, '')) = 'DEMO'");
+        return issues;
+    }
+
     public StoredEvent insertEvent(StoredEvent event) {
         GeneratedKeyHolder keys = new GeneratedKeyHolder();
         jdbc.update(con -> {

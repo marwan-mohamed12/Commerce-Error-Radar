@@ -47,9 +47,11 @@ Set these before a live session:
 | UI | `http://localhost:4200` |
 
 ```bat
-set HYBRIS_HOME=D:\hybris
-set RADAR_PREFIX=com.yourcompany
+set HYBRIS_HOME=D:/dccp-digitalcommerce-customerportal/core-customize/hybris
+set RADAR_PREFIX=com.marwan.radar
 ```
+
+Or put the same values in `collector/src/main/resources/application.properties` (`radar.hybris-home`, `radar.custom-package-prefix`). Leave `radar.hybris-home` empty only when you want the bundled `sample-logs` demo.
 
 ## Run
 
@@ -63,8 +65,10 @@ hybrisserver.bat
 ```
 
 ```bat
-mvn -pl collector -am spring-boot:run "-Dspring-boot.run.arguments=--radar.hybris-home=D:\hybris --radar.custom-package-prefix=com.yourcompany"
+mvn -pl collector -am spring-boot:run "-Dspring-boot.run.arguments=--radar.hybris-home=D:/dccp-digitalcommerce-customerportal/core-customize/hybris --radar.custom-package-prefix=com.marwan.radar"
 ```
+
+Do not pass `--radar.hybris-home=` when the variable is empty — an empty CLI flag overrides `application.properties` and forces DEMO.
 
 ```bat
 cd web
@@ -73,7 +77,7 @@ npm start
 
 Open [http://localhost:4200](http://localhost:4200).
 
-If `HYBRIS_HOME` is empty, the collector replays `sample-logs/console-20260809.log` so you can try the UI immediately.
+If `radar.hybris-home` (and `HYBRIS_HOME`) are empty, the collector replays `sample-logs/console-20260809.log` so you can try the UI immediately. If the property is set, sample logs are never used.
 
 ### Tests
 
@@ -133,16 +137,16 @@ Read `AGENTS.md` before changing code. Work only in this directory. Never create
 `collector/src/main/resources/application.properties`
 
 ```properties
-radar.hybris-home=${hybris.home:${HYBRIS_HOME:}}
-radar.custom-package-prefix=${RADAR_PREFIX:com.yourcompany}
+radar.hybris-home=D:/dccp-digitalcommerce-customerportal/core-customize/hybris
+radar.custom-package-prefix=com.marwan.radar
 radar.tail-from-end=true
 radar.ignore-patterns=Solr ping,session replication
 ```
 
-Flags:
+Use forward slashes in `application.properties`. Flags:
 
-- `--radar.hybris-home=D:\hybris` or `--hybris.home=D:\hybris`
-- `--radar.custom-package-prefix=com.acme`
+- `--radar.hybris-home=D:/hybris` (omit this flag entirely if you want the file value)
+- `--radar.custom-package-prefix=com.marwan.radar`
 - `--radar.tail-from-end=false` to replay the current file from the start
 
 ## Out of scope

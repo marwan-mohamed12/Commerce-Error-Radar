@@ -10,10 +10,13 @@ import java.util.List;
 public class RadarProperties {
 
     /**
-     * Hybris platform home (the folder that contains {@code hybris/log/tomcat}).
-     * Accepts {@code --radar.hybris-home}, {@code --hybris.home}, or env {@code HYBRIS_HOME}.
+     * Hybris platform home (the folder that contains {@code hybris/log/tomcat}
+     * or {@code log/tomcat}). Blank / unset → DEMO sample logs.
+     * Accepts {@code --radar.hybris-home} or env {@code HYBRIS_HOME}.
+     * Stored as a string so an empty value does not become a Path, and so
+     * {@code D:/...} in application.properties survives on Windows.
      */
-    private Path hybrisHome;
+    private String hybrisHome = "";
 
     /** First stack frame starting with this prefix is the fingerprint. */
     private String customPackagePrefix = "com.yourcompany";
@@ -47,12 +50,46 @@ public class RadarProperties {
             "actuator/health"
     ));
 
-    public Path getHybrisHome() {
+    public String getHybrisHome() {
         return hybrisHome;
     }
 
-    public void setHybrisHome(Path hybrisHome) {
-        this.hybrisHome = hybrisHome;
+    public void setHybrisHome(String hybrisHome) {
+        this.hybrisHome = hybrisHome == null ? "" : hybrisHome.trim();
+    }
+
+    /**
+     * True only when a Hybris home was actually configured.
+     * Empty string, blanks, and {@code --radar.hybris-home=} do not count —
+     * those fall through to {@code HYBRIS_HOME} / {@code hybris.home}, then DEMO.
+     */
+    public boolean hasHybrisHome() {
+        return resolvedHybrisHome() != null;
+    }
+
+    /**
+     * Configured Hybris home, or {@code null} when sample logs should be used.
+     */
+    public Path resolvedHybrisHome() {
+        String raw = firstNonBlank(
+                hybrisHome,
+                System.getenv("HYBRIS_HOME"),
+                System.getProperty("hybris.home"),
+                System.getProperty("radar.hybris-home")
+        );
+        return raw == null ? null : Path.of(raw);
+    }
+
+    static String firstNonBlank(String... values) {
+        if (values == null) {
+            return null;
+        }
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                return value.trim();
+            }
+        }
+        return null;
     }
 
     public String getCustomPackagePrefix() {

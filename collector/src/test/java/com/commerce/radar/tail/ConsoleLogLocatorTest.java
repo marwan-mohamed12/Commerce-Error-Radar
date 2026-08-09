@@ -38,4 +38,31 @@ class ConsoleLogLocatorTest {
         Files.createDirectories(dir);
         assertTrue(ConsoleLogLocator.newestConsoleLog(dir).isEmpty());
     }
+
+    @Test
+    void findsConsoleWhenHomeIsTheHybrisFolder() throws Exception {
+        Path tomcat = temp.resolve("log").resolve("tomcat");
+        Files.createDirectories(tomcat);
+        Path log = tomcat.resolve("console-20260809.log");
+        Files.writeString(log, "live");
+
+        assertEquals(tomcat, ConsoleLogLocator.tomcatLogDir(temp));
+        assertEquals(log, ConsoleLogLocator.newestConsoleLog(tomcat).orElseThrow());
+    }
+
+    @Test
+    void prefersDirectoryThatAlreadyHasAConsoleLog() throws Exception {
+        Path nested = temp.resolve("log").resolve("tomcat");
+        Path deeper = temp.resolve("hybris").resolve("log").resolve("tomcat");
+        Files.createDirectories(nested);
+        Files.createDirectories(deeper);
+        Path live = deeper.resolve("console-20260809.log");
+        Files.writeString(live, "live");
+
+        assertEquals(deeper, ConsoleLogLocator.tomcatLogDir(temp));
+        assertEquals(live, ConsoleLogLocator.newestIn(
+                nested,
+                deeper
+        ).orElseThrow());
+    }
 }

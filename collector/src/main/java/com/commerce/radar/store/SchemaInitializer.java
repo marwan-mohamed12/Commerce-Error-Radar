@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 @Component
@@ -26,10 +25,7 @@ public class SchemaInitializer {
 
     @PostConstruct
     public void init() throws IOException {
-        Path db = properties.getSqlitePath();
-        if (db.getParent() != null) {
-            Files.createDirectories(db.getParent());
-        }
+        Path db = SqliteFile.resolve(properties.getSqlitePath());
         jdbc.execute("PRAGMA journal_mode=WAL");
         jdbc.execute("PRAGMA busy_timeout=5000");
         jdbc.execute("PRAGMA foreign_keys=ON");

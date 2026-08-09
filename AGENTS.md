@@ -29,7 +29,7 @@ hybrisserver.bat
 Spring Boot collector :8088  →  SQLite  →  Angular UI :4200
 ```
 
-If `HYBRIS_HOME` is empty, the collector replays `sample-logs/console-20260809.log` (DEMO mode).
+If `radar.hybris-home` / `HYBRIS_HOME` is empty, the collector replays `sample-logs/console-20260809.log` (DEMO mode). If the property is set, never fall back to sample logs.
 
 ## Layout
 
@@ -60,13 +60,15 @@ F:\grok\Commerce-Error-Radar\
 
 ```bat
 set JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-21.0.12.8-hotspot
-set HYBRIS_HOME=D:\hybris
-set RADAR_PREFIX=com.yourcompany
+set HYBRIS_HOME=D:/dccp-digitalcommerce-customerportal/core-customize/hybris
+set RADAR_PREFIX=com.marwan.radar
 ```
 
 ```bat
 mvn -pl collector -am spring-boot:run "-Dspring-boot.run.arguments=--radar.hybris-home=%HYBRIS_HOME% --radar.custom-package-prefix=%RADAR_PREFIX%"
 ```
+
+Only pass `--radar.hybris-home` when the value is non-empty. An empty flag overrides `application.properties` and starts DEMO.
 
 ```bat
 cd web

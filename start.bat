@@ -12,8 +12,8 @@ set "ARGS=--radar.tail-from-end=true"
 if not "%HYBRIS_HOME%"=="" (
   set "ARGS=!ARGS! --radar.hybris-home=%HYBRIS_HOME%"
 ) else (
-  echo HYBRIS_HOME is not set. Collector will replay sample-logs in demo mode.
-  echo For a live tail:  set HYBRIS_HOME=D:\hybris
+  echo HYBRIS_HOME env is not set. Using radar.hybris-home from application.properties.
+  echo If that property is also empty, collector will replay sample-logs ^(DEMO^).
 )
 if not "%RADAR_PREFIX%"=="" (
   set "ARGS=!ARGS! --radar.custom-package-prefix=%RADAR_PREFIX%"

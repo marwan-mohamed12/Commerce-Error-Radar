@@ -13,7 +13,8 @@ if not "%HYBRIS_HOME%"=="" set "ARGS=!ARGS! --radar.hybris-home=%HYBRIS_HOME%"
 if not "%RADAR_PREFIX%"=="" set "ARGS=!ARGS! --radar.custom-package-prefix=%RADAR_PREFIX%"
 
 if "%HYBRIS_HOME%"=="" (
-  echo No HYBRIS_HOME — demo mode will replay ..\sample-logs
+  echo No HYBRIS_HOME env — using radar.hybris-home from application.properties.
+  echo Empty property = DEMO sample-logs. Set property or HYBRIS_HOME for a live tail.
 )
 
 mvn -pl collector -am spring-boot:run "-Dspring-boot.run.arguments=!ARGS!"
