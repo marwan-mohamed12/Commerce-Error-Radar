@@ -4,6 +4,10 @@
   Semantic tokens. Dark = night Hybris boot. Light = cool printout paper
   (blue-gray, not cream) so it does not read as the generic terracotta desk.
 */
+:root {
+  --radar-chrome: 7.5rem;
+}
+
 :root,
 [data-theme='dark'] {
   --radar-canvas: #10161d;
@@ -62,7 +66,8 @@
 @layer base {
   html,
   body {
-    min-height: 100%;
+    min-height: 100dvh;
+    overflow-x: hidden;
   }
 
   body {
@@ -93,6 +98,12 @@
 }
 
 @layer utilities {
+  .log-dump {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    white-space: pre-wrap;
+  }
+
   .live-dot {
     @apply size-2 shrink-0 rounded-full bg-mute;
   }

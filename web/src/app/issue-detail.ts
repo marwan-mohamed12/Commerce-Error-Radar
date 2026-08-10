@@ -6,7 +6,7 @@ import { clockTime, relativeTime } from './time';
 @Component({
   selector: 'app-issue-detail',
   templateUrl: './issue-detail.html',
-  host: { class: 'block min-h-full' },
+  host: { class: 'block min-h-full min-w-0' },
 })
 export class IssueDetailView {
   readonly detail = input<IssueDetail | null>(null);

@@ -1,14 +1,15 @@
-<div class="flex min-h-dvh flex-col">
-  <header class="sticky top-0 z-20 border-b border-rule bg-canvas-2/90 backdrop-blur-md">
-    <div class="grid gap-3 px-4 py-3 sm:px-5 lg:grid-cols-[auto_1fr_auto] lg:items-center lg:px-6">
-      <div class="flex items-center gap-3">
-        <div>
-          <p class="font-display text-[1.45rem] leading-none font-semibold tracking-[-0.03em] text-copy">Radar</p>
-          <p class="mt-1 font-mono text-[0.65rem] uppercase tracking-[0.14em] text-mute">Hybris console</p>
+<div class="flex min-h-dvh min-w-0 flex-col">
+  <div #chrome class="sticky top-0 z-20 min-w-0 shrink-0 bg-canvas-2">
+  <header class="min-w-0 border-b border-rule bg-canvas-2/90 backdrop-blur-md">
+    <div class="grid min-w-0 gap-2 px-3 py-2 sm:gap-3 sm:px-5 sm:py-3 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-center lg:px-6">
+      <div class="flex min-w-0 items-center gap-3">
+        <div class="min-w-0">
+          <p class="font-display text-[1.25rem] leading-none font-semibold tracking-[-0.03em] text-copy sm:text-[1.45rem]">Radar</p>
+          <p class="mt-1 hidden font-mono text-[0.65rem] uppercase tracking-[0.14em] text-mute sm:block">Hybris console</p>
         </div>
       </div>
 
-      <div class="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-quiet">
+      <div class="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 text-quiet sm:gap-x-4">
         <span class="inline-flex items-center gap-2 font-mono text-[0.72rem] uppercase tracking-[0.08em]">
           <span
             class="live-dot"
@@ -17,20 +18,20 @@
           ></span>
           {{ radar.status()?.mode || 'IDLE' }}
         </span>
-        <span class="max-w-[18rem] truncate font-mono text-[0.78rem]" [title]="radar.status()?.logPath || ''">
+        <span class="min-w-0 max-w-full truncate font-mono text-[0.78rem]" [title]="radar.status()?.logPath || ''">
           {{ logName() }}
         </span>
-        <span class="hidden font-mono text-[0.72rem] text-mute sm:inline">
+        <span class="hidden font-mono text-[0.72rem] text-mute md:inline">
           {{ radar.issues().length }} issues · {{ radar.status()?.linesRead || 0 }} lines
         </span>
       </div>
 
-      <div class="flex items-center gap-2">
-        <label class="min-w-0 flex-1 lg:w-64 lg:flex-none">
+      <div class="flex min-w-0 items-center gap-2">
+        <label class="min-w-0 flex-1 lg:max-w-64 lg:flex-none">
           <span class="sr-only">Search</span>
           <input
             type="search"
-            class="w-full rounded-lg border border-rule bg-surface px-3 py-2 text-sm text-copy outline-none placeholder:text-mute focus:border-brass focus:ring-2 focus:ring-brass/25"
+            class="w-full min-w-0 rounded-lg border border-rule bg-surface px-3 py-2 text-sm text-copy outline-none placeholder:text-mute focus:border-brass focus:ring-2 focus:ring-brass/25"
             placeholder="Search class or message"
             [value]="search()"
             (input)="onSearch($any($event.target).value)"
@@ -55,7 +56,7 @@
     </div>
 
     <div
-      class="flex flex-col gap-2 border-t border-rule px-4 py-2 sm:flex-row sm:items-center sm:px-5 lg:px-6"
+      class="flex min-w-0 flex-wrap items-center gap-2 border-t border-rule px-3 py-2 sm:px-5 lg:px-6"
     >
       <div class="inline-flex rounded-lg border border-rule p-0.5" role="group" aria-label="Level">
         @for (level of ['ALL', 'ERROR', 'WARN']; track level) {
@@ -129,10 +130,11 @@
       </button>
     </form>
   }
+  </div>
 
-  <main class="grid min-h-0 flex-1 lg:grid-cols-[minmax(20rem,32%)_1fr]">
+  <main class="grid min-w-0 flex-1 lg:grid-cols-[minmax(14rem,22rem)_minmax(0,1fr)]">
     <section
-      class="min-h-0 overflow-auto border-rule bg-surface/70 lg:border-r"
+      class="min-w-0 border-rule bg-surface/70 lg:sticky lg:top-[var(--radar-chrome,7.5rem)] lg:max-h-[calc(100dvh-var(--radar-chrome,7.5rem))] lg:self-start lg:overflow-y-auto lg:border-r"
       [class.max-lg:hidden]="pane() === 'detail'"
       aria-label="Issues"
     >
@@ -143,7 +145,11 @@
         (pick)="pickIssue($event)"
       />
     </section>
-    <section class="min-h-0 overflow-auto bg-canvas" [class.max-lg:hidden]="pane() === 'list'" aria-label="Selected issue">
+    <section
+      class="min-w-0 bg-canvas"
+      [class.max-lg:hidden]="pane() === 'list'"
+      aria-label="Selected issue"
+    >
       <app-issue-detail
         [detail]="radar.detail()"
         [prefix]="radar.status()?.customPackagePrefix || 'com.yourcompany'"
