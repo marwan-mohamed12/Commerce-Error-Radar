@@ -1,12 +1,29 @@
 <nav class="flex min-h-full min-w-0 flex-col" aria-label="Console issues">
   <header
-    class="sticky top-0 z-20 flex items-baseline justify-between gap-3 border-b border-rule bg-canvas-2 px-3 py-2.5 sm:px-4"
+    class="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-rule bg-canvas-2 px-3 py-2 sm:px-4"
   >
     <h2 class="font-mono text-[0.65rem] font-medium tracking-[0.16em] text-mute uppercase">Console</h2>
-    <p class="font-mono text-[0.68rem] tabular-nums text-quiet">
-      {{ issues().length }}
-      <span class="text-mute">{{ issues().length === 1 ? 'issue' : 'issues' }}</span>
-    </p>
+    <div class="flex items-center gap-2">
+      <p class="font-mono text-[0.68rem] tabular-nums text-quiet">
+        {{ issues().length }}
+        <span class="text-mute">{{ issues().length === 1 ? 'issue' : 'issues' }}</span>
+      </p>
+      @if (canCollapse()) {
+        <button
+          type="button"
+          class="hidden size-8 shrink-0 items-center justify-center rounded-md text-quiet hover:bg-raised hover:text-brass lg:inline-flex"
+          aria-label="Minimize list"
+          title="Minimize list"
+          (click)="collapse.emit()"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect width="18" height="18" x="3" y="3" rx="2"></rect>
+            <path d="M9 3v18"></path>
+            <path d="m16 15-3-3 3-3"></path>
+          </svg>
+        </button>
+      }
+    </div>
   </header>
 
   @for (group of groups(); track group.kind) {
