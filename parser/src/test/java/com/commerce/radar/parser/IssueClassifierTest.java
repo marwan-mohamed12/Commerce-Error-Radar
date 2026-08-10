@@ -45,4 +45,21 @@ class IssueClassifierTest {
         assertTrue(cron.startsWith("CronJob solrIncrementalUpdate failed"));
         assertTrue(cron.contains("ModelNotFoundException"));
     }
+
+    @Test
+    void occTitleDoesNotRepeatOccWhenClassAlreadyStartsWithIt() {
+        StackFingerprint.Result fp = new StackFingerprint("de.hybris").compute(
+                "CartException",
+                "\tat de.hybris.platform.commercewebservices.core.filter.OCCConsentLayerFilter.doFilterInternal(OCCConsentLayerFilter.java:88)\n"
+        );
+        String title = IssueClassifier.title(
+                IssueKind.OCC, "CartException", "consent failed", "OCCConsentLayerFilter",
+                fp, Map.of());
+        assertEquals("OCCConsentLayerFilter.doFilterInternal — CartException", title);
+        assertTrue(IssueClassifier.startsWithKindToken("OCCConsentLayerFilter.doFilterInternal", "OCC"));
+        assertEquals("OCCConsentLayerFilter.doFilterInternal",
+                IssueClassifier.withKindPrefix("OCC", "OCCConsentLayerFilter.doFilterInternal"));
+        assertEquals("OCC DefaultCartFacade.addToCart",
+                IssueClassifier.withKindPrefix("OCC", "DefaultCartFacade.addToCart"));
+    }
 }

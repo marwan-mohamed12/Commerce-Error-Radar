@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { IssueDetailView } from './issue-detail';
 import { IssueList } from './issue-list';
+import { kindLabel } from './kind';
 import { ISSUE_KINDS } from './models';
 import { RadarService } from './radar.service';
 import { ThemeService } from './theme';
@@ -93,14 +94,8 @@ export class App implements OnInit, OnDestroy {
 
   chipLabel(kind: string): string {
     if (kind === 'ALL') {
-      return 'All types';
+      return 'All';
     }
-    if (kind === 'FLEXIBLE_SEARCH') {
-      return 'FlexibleSearch';
-    }
-    if (kind === 'MODEL_SAVE') {
-      return 'Model save';
-    }
-    return kind.replaceAll('_', ' ');
+    return kindLabel(kind);
   }
 }

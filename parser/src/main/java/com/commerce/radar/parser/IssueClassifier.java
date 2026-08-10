@@ -55,10 +55,11 @@ public final class IssueClassifier {
                 String detail = firstNonBlank(trimMessage(message), shortEx);
                 yield "ImpEx " + file + " — " + detail;
             }
-            case OCC -> "OCC " + (simple.isBlank() ? firstNonBlank(logger, "controller") : simple) + " — " + shortEx;
+            case OCC -> withKindPrefix("OCC", simple.isBlank() ? firstNonBlank(logger, "controller") : simple)
+                    + " — " + shortEx;
             case FLEXIBLE_SEARCH -> "FlexibleSearch — " + firstNonBlank(trimMessage(message), shortEx);
-            case SOLR -> "Solr " + firstNonBlank(trimMessage(message), shortEx);
-            case INTERCEPTOR -> "Interceptor " + firstNonBlank(simple, logger) + " — " + shortEx;
+            case SOLR -> withKindPrefix("Solr", firstNonBlank(trimMessage(message), shortEx));
+            case INTERCEPTOR -> withKindPrefix("Interceptor", firstNonBlank(simple, logger)) + " — " + shortEx;
             case MODEL_SAVE -> "Model save — " + shortEx;
             case OTHER -> {
                 String head = simple.isBlank() ? firstNonBlank(logger, "Hybris") : simple;
@@ -107,6 +108,35 @@ public final class IssueClassifier {
         }
         var m = java.util.regex.Pattern.compile("(?i)(?<![\\w.])([A-Za-z0-9_-]+\\.impex)").matcher(message);
         return m.find() ? m.group(1) : "";
+    }
+
+    /**
+     * Do not emit {@code OCC OCCConsentLayerFilter…} when the class already starts with the kind.
+     */
+    static String withKindPrefix(String kindWord, String subject) {
+        String body = firstNonBlank(subject, kindWord);
+        if (startsWithKindToken(body, kindWord)) {
+            return body;
+        }
+        return kindWord + " " + body;
+    }
+
+    static boolean startsWithKindToken(String text, String kindWord) {
+        if (text == null || kindWord == null || kindWord.isBlank()) {
+            return false;
+        }
+        String value = text.strip();
+        if (value.length() < kindWord.length()) {
+            return false;
+        }
+        if (!value.regionMatches(true, 0, kindWord, 0, kindWord.length())) {
+            return false;
+        }
+        if (value.length() == kindWord.length()) {
+            return true;
+        }
+        char next = value.charAt(kindWord.length());
+        return next == ' ' || next == '-' || next == '_' || next == '.' || Character.isUpperCase(next);
     }
 
     private static String stripCronSuffix(String name) {

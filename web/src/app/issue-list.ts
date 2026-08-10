@@ -1,4 +1,5 @@
 import { Component, computed, input, output } from '@angular/core';
+import { KIND_ORDER, displayTitle, kindKey, kindLabel as labelForKind } from './kind';
 import { Issue } from './models';
 import { clockTime, relativeTime } from './time';
 
@@ -6,17 +7,6 @@ export interface IssueGroup {
   kind: string;
   issues: Issue[];
 }
-
-const KIND_ORDER = [
-  'OCC',
-  'CRONJOB',
-  'IMPEX',
-  'FLEXIBLE_SEARCH',
-  'SOLR',
-  'INTERCEPTOR',
-  'MODEL_SAVE',
-  'OTHER',
-];
 
 @Component({
   selector: 'app-issue-list',
@@ -50,7 +40,7 @@ export class IssueList {
       issues: buckets.get(kind)!,
     }));
     const extra = [...buckets.keys()]
-      .filter((kind) => !KIND_ORDER.includes(kind))
+      .filter((kind) => !KIND_ORDER.includes(kind as (typeof KIND_ORDER)[number]))
       .sort()
       .map((kind) => ({ kind, issues: buckets.get(kind)! }));
     return [...known, ...extra];
@@ -79,19 +69,15 @@ export class IssueList {
   }
 
   kindLabel(kind: string): string {
-    if (kind === 'FLEXIBLE_SEARCH') {
-      return 'FlexibleSearch';
-    }
-    if (kind === 'MODEL_SAVE') {
-      return 'Model save';
-    }
-    if (kind === 'CRONJOB') {
-      return 'CronJob';
-    }
-    if (kind === 'IMPEX') {
-      return 'ImpEx';
-    }
-    return (kind || 'OTHER').replaceAll('_', ' ');
+    return labelForKind(kind);
+  }
+
+  kindTone(kind: string): string {
+    return kindKey(kind);
+  }
+
+  titleOf(issue: Issue): string {
+    return displayTitle(issue.title, issue.kind);
   }
 
   onKey(event: KeyboardEvent): void {
