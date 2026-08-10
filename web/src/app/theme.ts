@@ -22,6 +22,7 @@ export class ThemeService {
     root.dataset['theme'] = theme;
     root.style.colorScheme = theme;
     localStorage.setItem(STORAGE_KEY, theme);
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#080808' : '#e8edf2');
   }
 
   private readInitial(): RadarTheme {

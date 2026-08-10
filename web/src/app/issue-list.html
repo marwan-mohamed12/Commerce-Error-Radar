@@ -11,7 +11,7 @@
       @if (canCollapse()) {
         <button
           type="button"
-          class="hidden size-8 shrink-0 items-center justify-center rounded-md text-quiet hover:bg-raised hover:text-brass lg:inline-flex"
+          class="icon-btn hidden lg:inline-flex"
           aria-label="Minimize list"
           title="Minimize list"
           (click)="collapse.emit()"
@@ -42,7 +42,7 @@
             <button
               type="button"
               role="option"
-              class="relative w-full min-w-0 border-l-2 px-3 py-2.5 text-left transition-colors sm:px-4"
+              class="relative w-full min-w-0 border-l-2 px-3 py-2.5 text-left transition-colors sm:px-4 focus-visible:bg-raised"
               [class.border-brass]="selected() === issue.fingerprint"
               [class.bg-raised]="selected() === issue.fingerprint"
               [class.border-transparent]="selected() !== issue.fingerprint"
@@ -88,11 +88,14 @@
       </ul>
     </section>
   } @empty {
-    <div class="px-6 py-20 text-center">
-      <p class="font-display text-xl text-copy">Quiet for now</p>
-      <p class="mx-auto mt-2 max-w-[28ch] text-sm leading-relaxed text-mute">
-        ERROR and WARN from the Hybris console will land here and stay put.
-      </p>
+    <div class="grid flex-1 place-items-center px-6 py-16 text-center">
+      <div>
+        <img src="favicon.svg" width="36" height="36" alt="" class="mx-auto mb-3 opacity-80" />
+        <p class="font-display text-xl text-copy">Quiet for now</p>
+        <p class="mx-auto mt-2 max-w-[28ch] text-sm leading-relaxed text-mute">
+          Start hybrisserver, or open an old console log. ERROR and WARN will land here and stay put.
+        </p>
+      </div>
     </div>
   }
 </nav>

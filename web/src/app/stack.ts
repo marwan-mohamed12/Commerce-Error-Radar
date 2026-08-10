@@ -1,7 +1,16 @@
 export interface StackLine {
   text: string;
-  kind: 'at' | 'cause' | 'more' | 'type' | 'other';
+  kind: 'at' | 'cause' | 'more' | 'type' | 'other' | 'header';
   className: string;
+  method: string;
+  file: string;
+  lineNo: string;
+  packageName: string;
+  simpleClass: string;
+  exception: string;
+  detail: string;
+  level: string;
+  lead: string;
   mine: boolean;
   hybris: boolean;
   framework: boolean;
@@ -14,6 +23,9 @@ export interface StackBlock {
 }
 
 const FRAME = /^\s*at\s+(?:([\w.]+)\/)?([\w.$]+)\.([\w$<>-]+)\(([^:)]+)?(?::(\d+))?\)\s*$/;
+const CAUSE = /^(Caused by|Suppressed):\s+([\w.$]+)(?::\s*(.*))?$/;
+const TYPE = /^([\w.$]+(?:Exception|Error|Throwable))(?::\s*(.*))?$/;
+const HEADER = /^(ERROR|WARN|FATAL|INFO|DEBUG)\s+(.*)$/;
 
 export function parseStack(raw: string, customPrefix: string): StackLine[] {
   if (!raw) {
@@ -51,8 +63,14 @@ export function collapseFramework(lines: StackLine[]): StackBlock[] {
 
 function classify(text: string, customPrefix: string): StackLine {
   const trimmed = text.trim();
-  if (trimmed.startsWith('Caused by:') || trimmed.startsWith('Suppressed:')) {
-    return base(text, 'cause');
+  const cause = CAUSE.exec(trimmed);
+  if (cause) {
+    return {
+      ...base(text, 'cause'),
+      lead: cause[1],
+      exception: cause[2],
+      detail: cause[3] ?? '',
+    };
   }
   if (trimmed.startsWith('...')) {
     return base(text, 'more');
@@ -60,23 +78,76 @@ function classify(text: string, customPrefix: string): StackLine {
   const frame = FRAME.exec(text);
   if (frame) {
     const className = frame[2];
+    const split = splitClass(className);
     return {
-      text,
-      kind: 'at',
+      ...base(text, 'at'),
       className,
+      method: frame[3] ?? '',
+      file: frame[4] ?? '',
+      lineNo: frame[5] ?? '',
+      packageName: split.packageName,
+      simpleClass: split.simpleClass,
       mine: !!customPrefix && className.startsWith(customPrefix),
       hybris: className.startsWith('de.hybris.'),
       framework: isFramework(className),
     };
   }
-  if (/^[\w.$]+(?:Exception|Error|Throwable)(?::.*)?$/.test(trimmed)) {
-    return base(text, 'type');
+  const typed = TYPE.exec(trimmed);
+  if (typed) {
+    return {
+      ...base(text, 'type'),
+      exception: typed[1],
+      detail: typed[2] ?? '',
+    };
+  }
+  const header = HEADER.exec(trimmed);
+  if (header) {
+    return {
+      ...base(text, 'header'),
+      level: header[1],
+      detail: header[2],
+    };
   }
   return base(text, 'other');
 }
 
+function splitClass(className: string): { packageName: string; simpleClass: string } {
+  const dot = className.lastIndexOf('.');
+  if (dot < 0) {
+    return { packageName: '', simpleClass: className };
+  }
+  return { packageName: className.slice(0, dot), simpleClass: className.slice(dot + 1) };
+}
+
+export function shortPackage(pkg: string, wide = false): string {
+  if (!pkg || wide) {
+    return pkg;
+  }
+  const parts = pkg.split('.');
+  if (parts.length <= 4) {
+    return pkg;
+  }
+  return `${parts.slice(0, 2).join('.')}.…${parts[parts.length - 1]}`;
+}
+
 function base(text: string, kind: StackLine['kind']): StackLine {
-  return { text, kind, className: '', mine: false, hybris: false, framework: false };
+  return {
+    text,
+    kind,
+    className: '',
+    method: '',
+    file: '',
+    lineNo: '',
+    packageName: '',
+    simpleClass: '',
+    exception: '',
+    detail: '',
+    level: '',
+    lead: '',
+    mine: false,
+    hybris: false,
+    framework: false,
+  };
 }
 
 function isFramework(className: string): boolean {

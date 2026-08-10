@@ -1,8 +1,10 @@
 <div class="flex h-full min-h-0 min-w-0 flex-col overflow-hidden">
+  <a class="skip-link" href="#radar-main">Skip to issues</a>
   <div class="min-w-0 shrink-0 bg-canvas-2">
   <header class="min-w-0 border-b border-rule bg-canvas-2/90 backdrop-blur-md">
     <div class="grid min-w-0 gap-2 px-3 py-2 sm:gap-3 sm:px-5 sm:py-3 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-center lg:px-6">
-      <div class="flex min-w-0 items-center gap-3">
+      <div class="flex min-w-0 items-center gap-2.5">
+        <img src="favicon.svg" width="28" height="28" alt="" class="radar-mark" />
         <div class="min-w-0">
           <p class="font-display text-[1.25rem] leading-none font-semibold tracking-[-0.03em] text-copy sm:text-[1.45rem]">Radar</p>
           <p class="mt-1 hidden font-mono text-[0.65rem] uppercase tracking-[0.14em] text-mute sm:block">Hybris console</p>
@@ -27,11 +29,15 @@
       </div>
 
       <div class="flex min-w-0 items-center gap-2">
-        <label class="min-w-0 flex-1 lg:max-w-64 lg:flex-none">
-          <span class="sr-only">Search</span>
+        <label class="search-field lg:max-w-64 lg:flex-none">
+          <span class="sr-only">Search class or message</span>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"></circle>
+            <path d="m20 20-3-3"></path>
+          </svg>
           <input
             type="search"
-            class="w-full min-w-0 rounded-lg border border-rule bg-surface px-3 py-2 text-sm text-copy outline-none placeholder:text-mute focus:border-brass focus:ring-2 focus:ring-brass/25"
+            class="w-full min-w-0 rounded-lg border border-rule bg-surface py-2 pr-3 text-sm text-copy placeholder:text-mute"
             placeholder="Search class or message"
             [value]="search()"
             (input)="onSearch($any($event.target).value)"
@@ -39,18 +45,33 @@
         </label>
         <button
           type="button"
-          class="shrink-0 rounded-lg border border-rule px-2.5 py-2 text-sm text-quiet hover:border-brass hover:text-brass"
+          class="icon-btn"
           [attr.aria-label]="theme.theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'"
+          [attr.title]="theme.theme() === 'dark' ? 'Light theme' : 'Dark theme'"
           (click)="theme.toggle()"
         >
-          {{ theme.theme() === 'dark' ? 'Light' : 'Dark' }}
+          @if (theme.theme() === 'dark') {
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="4"></circle>
+              <path d="M12 3v2M12 19v2M5 12H3M21 12h-2M6.3 6.3l1.4 1.4M16.3 16.3l1.4 1.4M6.3 17.7l1.4-1.4M16.3 7.7l1.4-1.4"></path>
+            </svg>
+          } @else {
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 14.5A8.5 8.5 0 1 1 9.5 3 7 7 0 0 0 21 14.5z"></path>
+            </svg>
+          }
         </button>
         <button
           type="button"
-          class="shrink-0 rounded-lg border border-rule px-2.5 py-2 text-sm text-quiet hover:border-brass hover:text-brass"
+          class="icon-btn"
+          aria-label="Open log file"
+          title="Open log"
+          [attr.aria-expanded]="showOpen()"
           (click)="showOpen.set(!showOpen())"
         >
-          Open log
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.5L10 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z"></path>
+          </svg>
         </button>
       </div>
     </div>
@@ -99,7 +120,7 @@
   </header>
 
   @if (radar.error()) {
-    <p class="border-b border-ember/30 bg-ember/10 px-4 py-2.5 text-sm text-copy sm:px-6">
+    <p class="border-b border-ember/30 bg-ember/10 px-4 py-2.5 text-sm text-copy sm:px-6" role="alert">
       {{ radar.error() }} — start the collector on port 8088, then refresh.
     </p>
   }
@@ -109,9 +130,11 @@
       class="flex flex-col gap-3 border-b border-rule bg-surface px-4 py-3 sm:flex-row sm:items-center sm:px-6"
       (submit)="$event.preventDefault(); openSelected()"
     >
+      <label class="sr-only" for="open-path">Log file path</label>
       <input
+        id="open-path"
         type="text"
-        class="min-w-0 flex-1 rounded-lg border border-rule bg-canvas px-3 py-2 text-sm text-copy outline-none placeholder:text-mute focus:border-brass focus:ring-2 focus:ring-brass/25"
+        class="min-w-0 flex-1 rounded-lg border border-rule bg-canvas px-3 py-2 text-sm text-copy placeholder:text-mute"
         placeholder="C:\hybris\hybris\log\tomcat\console-20260809.log"
         [value]="openPath()"
         (input)="openPath.set($any($event.target).value)"
@@ -133,6 +156,7 @@
   </div>
 
   <main
+    id="radar-main"
     class="grid min-h-0 min-w-0 flex-1 overflow-hidden"
     [class.lg:grid-cols-[minmax(20rem,28rem)_minmax(0,1fr)]]="railOpen()"
     [class.lg:grid-cols-[3rem_minmax(0,1fr)]]="!railOpen()"
@@ -158,7 +182,7 @@
       >
         <button
           type="button"
-          class="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-quiet hover:bg-raised hover:text-brass"
+          class="icon-btn"
           aria-label="Maximize list"
           title="Maximize list"
           (click)="setRail(true)"
