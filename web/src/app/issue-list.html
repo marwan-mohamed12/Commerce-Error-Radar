@@ -2,7 +2,9 @@
   <header
     class="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-rule bg-canvas-2 px-3 py-2 sm:px-4"
   >
-    <h2 class="font-mono text-[0.65rem] font-medium tracking-[0.16em] text-mute uppercase">Console</h2>
+    <h2 class="font-mono text-[0.65rem] font-medium tracking-[0.16em] text-mute uppercase">
+      {{ viewingHistory() ? 'History' : 'This session' }}
+    </h2>
     <div class="flex items-center gap-2">
       <p class="font-mono text-[0.68rem] tabular-nums text-quiet">
         {{ issues().length }}
@@ -96,9 +98,13 @@
     <div class="grid flex-1 place-items-center px-6 py-16 text-center">
       <div>
         <img src="favicon.svg" width="36" height="36" alt="" class="mx-auto mb-3 opacity-80" />
-        <p class="font-display text-xl text-copy">Quiet for now</p>
+        <p class="font-display text-xl text-copy">{{ viewingHistory() ? 'Quiet that session' : 'Quiet this session' }}</p>
         <p class="mx-auto mt-2 max-w-[28ch] text-sm leading-relaxed text-mute">
-          Start hybrisserver, or open an old console log. ERROR and WARN will land here and stay put.
+          @if (viewingHistory()) {
+            This older run has no ERROR or WARN that match the filters.
+          } @else {
+            New ERROR and WARN stay here until you restart Radar. Earlier runs are in History.
+          }
         </p>
       </div>
     </div>

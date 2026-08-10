@@ -1,5 +1,6 @@
 package com.commerce.radar.api.dto;
 
+import com.commerce.radar.store.RunSummary;
 import com.commerce.radar.store.StoredEvent;
 import com.commerce.radar.store.StoredIssue;
 import com.commerce.radar.tail.TailStatus;
@@ -110,6 +111,32 @@ public final class IssueDtos {
                     truncate(status.getLastLine(), 240),
                     status.getMessage(),
                     prefix
+            );
+        }
+    }
+
+    public record RunSummaryResponse(
+            long id,
+            String hybrisHome,
+            String logPath,
+            Instant startedAt,
+            Instant endedAt,
+            String mode,
+            long eventCount,
+            long issueCount,
+            boolean current
+    ) {
+        public static RunSummaryResponse from(RunSummary run, long currentRunId) {
+            return new RunSummaryResponse(
+                    run.id(),
+                    run.hybrisHome(),
+                    run.logPath(),
+                    run.startedAt(),
+                    run.endedAt(),
+                    run.mode(),
+                    run.eventCount(),
+                    run.issueCount(),
+                    run.id() == currentRunId
             );
         }
     }

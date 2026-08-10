@@ -6,6 +6,7 @@ import com.commerce.radar.api.dto.IssueDtos.IssueResponse;
 import com.commerce.radar.api.dto.IssueDtos.MuteRequest;
 import com.commerce.radar.store.RadarRepository;
 import com.commerce.radar.store.StoredIssue;
+import com.commerce.radar.tail.ConsoleLogTailer;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,9 +24,11 @@ import java.util.List;
 public class IssueController {
 
     private final RadarRepository repository;
+    private final ConsoleLogTailer tailer;
 
-    public IssueController(RadarRepository repository) {
+    public IssueController(RadarRepository repository, ConsoleLogTailer tailer) {
         this.repository = repository;
+        this.tailer = tailer;
     }
 
     @GetMapping
@@ -33,23 +36,33 @@ public class IssueController {
             @RequestParam(name = "level", required = false) String level,
             @RequestParam(name = "kind", required = false) String kind,
             @RequestParam(name = "q", required = false) String q,
-            @RequestParam(name = "mineOnly", defaultValue = "false") boolean mineOnly,
+            @RequestParam(name = "runId", required = false) Long runId,
             @RequestParam(name = "includeMuted", defaultValue = "false") boolean includeMuted
     ) {
-        return repository.listIssues(level, kind, q, mineOnly, includeMuted)
+        long session = resolveRunId(runId);
+        if (session <= 0) {
+            return List.of();
+        }
+        return repository.listIssues(session, level, kind, q, includeMuted)
                 .stream()
                 .map(IssueResponse::from)
                 .toList();
     }
 
     @GetMapping("/one")
-    public ResponseEntity<IssueDetailResponse> detail(@RequestParam("fingerprint") String fingerprint) {
+    public ResponseEntity<IssueDetailResponse> detail(
+            @RequestParam("fingerprint") String fingerprint,
+            @RequestParam(name = "runId", required = false) Long runId
+    ) {
         String decoded = fingerprint == null ? "" : URLDecoder.decode(fingerprint, StandardCharsets.UTF_8);
-        StoredIssue issue = repository.findIssue(decoded).orElse(null);
+        long session = resolveRunId(runId);
+        StoredIssue issue = session > 0
+                ? repository.findIssueInRun(decoded, session).orElse(null)
+                : repository.findIssue(decoded).orElse(null);
         if (issue == null) {
             return ResponseEntity.notFound().build();
         }
-        List<EventResponse> events = repository.listEventsForFingerprint(decoded, 25)
+        List<EventResponse> events = repository.listEventsForFingerprint(decoded, session > 0 ? session : null, 25)
                 .stream()
                 .map(EventResponse::from)
                 .toList();
@@ -68,5 +81,12 @@ public class IssueController {
                 .map(IssueResponse::from)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    private long resolveRunId(Long runId) {
+        if (runId != null && runId > 0) {
+            return runId;
+        }
+        return tailer.status().getRunId();
     }
 }

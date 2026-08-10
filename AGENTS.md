@@ -114,10 +114,11 @@ Parent POM skips `spring-boot:run`; only `collector` runs the app. Always use `-
 
 | Method | Path | Purpose |
 |---|---|---|
+| GET | `/api/runs` | past sessions (event/issue counts) |
 | GET | `/api/runs/current` | tail status |
 | POST | `/api/runs/open` | open a log file (`path`, `replay`) |
-| GET | `/api/issues` | grouped issues (`level`, `kind`, `q`, `mineOnly`) |
-| GET | `/api/issues/one?fingerprint=` | issue + recent events (query param, not path — fingerprints contain `@`) |
+| GET | `/api/issues` | issues for a session (`runId` defaults to current, plus `level`, `kind`, `q`) |
+| GET | `/api/issues/one?fingerprint=` | issue + events for that session (query param, not path — fingerprints contain `@`) |
 | POST | `/api/issues/mute?fingerprint=` | mute / unmute |
 | GET | `/api/events` | flat search |
 | GET | `/api/stream` | SSE (`issue`, `status`, `hello`) |
@@ -128,7 +129,7 @@ SQLite file: `collector/data/radar.db` (gitignored). Schema on startup in `Schem
 
 - Dark “night-shift console” UI: issue list left, detail right.
 - Collapse Hybris/framework frames; highlight custom-package frames.
-- Filters: ERROR/WARN, kind chips, mine-only, search.
+- Filters: ERROR/WARN, kind chips, search.
 - Copy stack, mute, open/replay an old log.
 - SSE updates counts live.
 - Tailwind v4 with semantic tokens in `web/src/styles.css`. Dark/light via `data-theme` + `ThemeService` (`localStorage` key `radar-theme`).

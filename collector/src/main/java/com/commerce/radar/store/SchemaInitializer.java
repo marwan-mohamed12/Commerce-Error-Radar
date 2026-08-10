@@ -76,6 +76,7 @@ public class SchemaInitializer {
         jdbc.execute("CREATE INDEX IF NOT EXISTS idx_events_fingerprint ON events(fingerprint)");
         jdbc.execute("CREATE INDEX IF NOT EXISTS idx_events_ts ON events(ts)");
         jdbc.execute("CREATE INDEX IF NOT EXISTS idx_events_level ON events(level)");
+        jdbc.execute("CREATE INDEX IF NOT EXISTS idx_events_run_fp ON events(run_id, fingerprint)");
         jdbc.execute("CREATE INDEX IF NOT EXISTS idx_issues_last_seen ON issues(last_seen)");
         log.info("SQLite ready at {}", db.toAbsolutePath());
     }

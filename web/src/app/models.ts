@@ -57,7 +57,18 @@ export interface Filters {
   level: 'ALL' | 'ERROR' | 'WARN';
   kind: string;
   q: string;
-  mineOnly: boolean;
+}
+
+export interface RunSession {
+  id: number;
+  hybrisHome: string;
+  logPath: string;
+  startedAt: string | null;
+  endedAt: string | null;
+  mode: string;
+  eventCount: number;
+  issueCount: number;
+  current: boolean;
 }
 
 export const ISSUE_KINDS = [

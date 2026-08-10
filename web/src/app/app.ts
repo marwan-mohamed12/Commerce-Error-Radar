@@ -5,7 +5,7 @@ import { kindLabel } from './kind';
 import { ISSUE_KINDS } from './models';
 import { RadarService } from './radar.service';
 import { ThemeService } from './theme';
-import { fileName } from './time';
+import { fileName, sessionStamp } from './time';
 
 @Component({
   selector: 'app-root',
@@ -24,6 +24,7 @@ export class App implements OnInit, OnDestroy {
   readonly openPath = signal('');
   readonly replay = signal(true);
   readonly showOpen = signal(false);
+  readonly showHistory = signal(false);
   readonly pane = signal<'list' | 'detail'>('list');
   readonly railOpen = signal(true);
   private searchTimer: ReturnType<typeof setTimeout> | null = null;
@@ -76,6 +77,34 @@ export class App implements OnInit, OnDestroy {
 
   logName(): string {
     return fileName(this.radar.status()?.logPath);
+  }
+
+  fileName(path: string | null | undefined): string {
+    return fileName(path);
+  }
+
+  sessionLabel(): string {
+    if (this.radar.viewingHistory()) {
+      const run = this.radar.sessions().find((session) => session.id === this.radar.viewRunId());
+      return run ? `History · ${sessionStamp(run.startedAt)}` : 'History';
+    }
+    return 'This session';
+  }
+
+  sessionStamp(iso: string | null | undefined): string {
+    return sessionStamp(iso);
+  }
+
+  pickSession(runId: number): void {
+    this.radar.viewSession(runId);
+    this.showHistory.set(false);
+    this.pane.set('list');
+  }
+
+  backToLive(): void {
+    this.radar.viewCurrentSession();
+    this.showHistory.set(false);
+    this.pane.set('list');
   }
 
   async openSelected(): Promise<void> {

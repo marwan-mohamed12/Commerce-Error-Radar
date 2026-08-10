@@ -24,7 +24,7 @@
           {{ logName() }}
         </span>
         <span class="hidden font-mono text-[0.72rem] text-mute md:inline">
-          {{ radar.issues().length }} issues · {{ radar.status()?.linesRead || 0 }} lines
+          {{ sessionLabel() }} · {{ radar.issues().length }} issues
         </span>
       </div>
 
@@ -64,10 +64,23 @@
         <button
           type="button"
           class="icon-btn"
+          aria-label="Session history"
+          title="History"
+          [attr.aria-expanded]="showHistory()"
+          (click)="showHistory.set(!showHistory()); showOpen.set(false)"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"></circle>
+            <path d="M12 7v5l3 2"></path>
+          </svg>
+        </button>
+        <button
+          type="button"
+          class="icon-btn"
           aria-label="Open log file"
           title="Open log"
           [attr.aria-expanded]="showOpen()"
-          (click)="showOpen.set(!showOpen())"
+          (click)="showOpen.set(!showOpen()); showHistory.set(false)"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.5L10 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z"></path>
@@ -109,16 +122,6 @@
           </button>
         }
       </div>
-
-      <label class="inline-flex items-center gap-2 text-[0.75rem] text-quiet sm:ml-auto">
-        <input
-          type="checkbox"
-          class="size-3.5 accent-brass"
-          [checked]="radar.filters().mineOnly"
-          (change)="radar.setFilter('mineOnly', $any($event.target).checked)"
-        />
-        Only my packages
-      </label>
     </div>
   </header>
 
@@ -126,6 +129,52 @@
     <p class="border-b border-ember/30 bg-ember/10 px-4 py-2.5 text-sm text-copy sm:px-6" role="alert">
       {{ radar.error() }} — start the collector on port 8088, then refresh.
     </p>
+  }
+
+  @if (radar.viewingHistory()) {
+    <div class="flex flex-wrap items-center gap-3 border-b border-honey/30 bg-honey/10 px-4 py-2 text-sm text-copy sm:px-6">
+      <span>Viewing an older session. The live console is still collecting.</span>
+      <button type="button" class="font-medium text-brass hover:underline" (click)="backToLive()">
+        Back to this session
+      </button>
+    </div>
+  }
+
+  @if (showHistory()) {
+    <div class="border-b border-rule bg-surface">
+      <div class="flex items-baseline justify-between gap-3 px-4 py-2 sm:px-6">
+        <h2 class="font-mono text-[0.65rem] tracking-[0.14em] text-mute uppercase">Sessions</h2>
+        <p class="font-mono text-[0.65rem] text-mute">Older ERROR/WARN stay here</p>
+      </div>
+      <ul class="max-h-56 overflow-y-auto">
+        @for (session of radar.sessions(); track session.id) {
+          <li>
+            <button
+              type="button"
+              class="flex w-full min-w-0 items-baseline gap-3 px-4 py-2 text-left hover:bg-raised sm:px-6"
+              [class.bg-raised]="radar.activeRunId() === session.id"
+              (click)="pickSession(session.id)"
+            >
+              <span class="w-16 shrink-0 font-mono text-[0.68rem] uppercase tracking-[0.08em]"
+                [class.text-brass]="session.current"
+                [class.text-mute]="!session.current"
+              >
+                {{ session.current ? 'Now' : session.mode }}
+              </span>
+              <span class="min-w-0 flex-1 truncate font-mono text-[0.78rem] text-copy">
+                {{ sessionStamp(session.startedAt) }}
+                <span class="text-mute"> · {{ fileName(session.logPath) }}</span>
+              </span>
+              <span class="shrink-0 font-mono text-[0.68rem] tabular-nums text-quiet">
+                {{ session.issueCount }}
+              </span>
+            </button>
+          </li>
+        } @empty {
+          <li class="px-4 py-6 text-sm text-mute sm:px-6">No sessions yet.</li>
+        }
+      </ul>
+    </div>
   }
 
   @if (showOpen()) {
@@ -175,6 +224,7 @@
           [selected]="radar.selectedFingerprint()"
           [flash]="radar.flashFingerprint()"
           [canCollapse]="true"
+          [viewingHistory]="radar.viewingHistory()"
           (collapse)="setRail(false)"
           (pick)="pickIssue($event)"
         />
