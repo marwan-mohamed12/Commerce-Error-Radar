@@ -29,11 +29,12 @@
   @for (group of groups(); track group.kind) {
     <section>
       @if (showHeads()) {
-        <h3
-          class="sticky top-[2.6rem] z-10 flex items-baseline justify-between gap-2 border-b border-rule/80 bg-canvas-2/95 px-3 py-1.5 font-mono text-[0.62rem] tracking-[0.14em] text-brass uppercase sm:px-4"
-        >
-          <span>{{ kindLabel(group.kind) }}</span>
-          <span class="tabular-nums text-mute">{{ group.issues.length }}</span>
+        <h3 class="kind-head sticky top-[2.6rem] z-10 sm:px-4" [attr.data-kind]="kindTone(group.kind)">
+          <span class="inline-flex items-center gap-2 normal-case tracking-[0.08em]">
+            <span class="kind-pip" aria-hidden="true"></span>
+            {{ kindLabel(group.kind) }}
+          </span>
+          <span class="tabular-nums tracking-normal text-mute">{{ group.issues.length }}</span>
         </h3>
       }
       <ul role="listbox">
@@ -67,6 +68,10 @@
                   {{ stamp(issue.level) }}
                 </span>
                 <span class="text-mute">{{ clock(issue.lastSeen) }}</span>
+                <span class="kind-chip" [attr.data-kind]="kindTone(issue.kind)">
+                  <span class="kind-pip" aria-hidden="true"></span>
+                  {{ kindLabel(issue.kind) }}
+                </span>
                 @if (issue.hasCustomFrame) {
                   <span class="text-brass">mine</span>
                 }
@@ -76,7 +81,7 @@
                 <span class="ml-auto text-quiet">×{{ issue.count }}</span>
               </span>
               <span class="relative mt-1 block line-clamp-2 text-[0.9rem] leading-snug break-words text-copy">
-                {{ issue.title }}
+                {{ titleOf(issue) }}
               </span>
               <span class="relative mt-1 flex min-w-0 items-baseline gap-2 font-mono text-[0.68rem]">
                 <span class="min-w-0 flex-1 truncate text-mute">{{ issue.lastMessage || kindLabel(issue.kind) }}</span>

@@ -29,7 +29,10 @@
         >
           {{ d.issue.level }}
         </span>
-        <span>{{ kindLabel(d.issue.kind) }}</span>
+        <span class="kind-chip" [attr.data-kind]="kindTone(d.issue.kind)">
+          <span class="kind-pip" aria-hidden="true"></span>
+          {{ kindLabel(d.issue.kind) }}
+        </span>
         @if (d.issue.hasCustomFrame) {
           <span class="text-brass">your package</span>
         }
@@ -37,7 +40,7 @@
       </div>
 
       <h1 class="min-w-0 font-display text-[1.5rem] leading-snug font-medium tracking-[-0.02em] break-words text-copy sm:text-[1.75rem]">
-        {{ d.issue.title }}
+        {{ titleOf(d.issue.title, d.issue.kind) }}
       </h1>
 
       <p
@@ -110,15 +113,43 @@
     }
 
     <section class="min-w-0">
-      <div class="mb-2 flex flex-wrap items-baseline justify-between gap-2">
-        <h2 class="text-[0.72rem] font-medium tracking-[0.08em] text-mute uppercase">Stack</h2>
-        <p class="font-mono text-[0.62rem] tracking-[0.04em] text-mute">
-          <span class="text-ember">exception</span>
-          <span class="mx-1.5 text-rule">·</span>
-          <span class="text-brass">your package</span>
-          <span class="mx-1.5 text-rule">·</span>
-          <span>Hybris stays folded</span>
-        </p>
+      <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <div class="min-w-0">
+          <h2 class="text-[0.72rem] font-medium tracking-[0.08em] text-mute uppercase">Stack</h2>
+          <p class="mt-1 font-mono text-[0.62rem] tracking-[0.04em] text-mute">
+            <span class="text-ember">exception</span>
+            <span class="mx-1.5 text-rule">·</span>
+            <span class="text-brass">your package</span>
+            <span class="mx-1.5 text-rule">·</span>
+            <span>Hybris stays folded</span>
+          </p>
+        </div>
+        @if (canFold()) {
+          <div class="flex flex-wrap gap-2">
+            <button
+              type="button"
+              class="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-rule px-3 py-1.5 text-sm text-quiet hover:border-brass hover:text-brass disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-rule disabled:hover:text-quiet"
+              [disabled]="allExpanded()"
+              (click)="expandAll()"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="m7 15 5 5 5-5M7 9l5-5 5 5"></path>
+              </svg>
+              Expand all
+            </button>
+            <button
+              type="button"
+              class="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-rule px-3 py-1.5 text-sm text-quiet hover:border-brass hover:text-brass disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-rule disabled:hover:text-quiet"
+              [disabled]="allCollapsed()"
+              (click)="collapseAll()"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="m7 20 5-5 5 5M7 4l5 5 5-5"></path>
+              </svg>
+              Collapse all
+            </button>
+          </div>
+        }
       </div>
       <ol
         class="stack-console min-w-0 py-2"

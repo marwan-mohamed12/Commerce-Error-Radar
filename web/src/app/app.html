@@ -94,18 +94,21 @@
         }
       </div>
 
-      <label class="flex items-center gap-2 text-[0.75rem] text-mute">
-        Type
-        <select
-          class="rounded-lg border border-rule bg-surface px-2.5 py-1.5 text-sm text-copy outline-none focus:border-brass"
-          [value]="radar.filters().kind"
-          (change)="onKind($any($event.target).value)"
-        >
-          @for (kind of kinds; track kind) {
-            <option [value]="kind">{{ chipLabel(kind) }}</option>
-          }
-        </select>
-      </label>
+      <div class="flex min-w-0 flex-wrap items-center gap-1.5" role="group" aria-label="Type">
+        @for (kind of kinds; track kind) {
+          <button
+            type="button"
+            class="kind-chip"
+            [attr.data-kind]="kind"
+            [class.is-on]="radar.filters().kind === kind"
+            [attr.aria-pressed]="radar.filters().kind === kind"
+            (click)="onKind(kind)"
+          >
+            <span class="kind-pip" aria-hidden="true"></span>
+            {{ chipLabel(kind) }}
+          </button>
+        }
+      </div>
 
       <label class="inline-flex items-center gap-2 text-[0.75rem] text-quiet sm:ml-auto">
         <input

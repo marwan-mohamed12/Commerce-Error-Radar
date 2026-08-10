@@ -1,5 +1,6 @@
-import { Component, computed, input, output, signal } from '@angular/core';
+import { Component, computed, effect, input, output, signal } from '@angular/core';
 import { IssueDetail } from './models';
+import { displayTitle, kindKey, kindLabel as labelForKind } from './kind';
 import { StackBlock, collapseFramework, parseStack, shortPackage } from './stack';
 import { clockTime, relativeTime } from './time';
 
@@ -30,6 +31,38 @@ export class IssueDetailView {
     return collapseFramework(parseStack(event.rawText, this.prefix()));
   });
 
+  readonly foldIndexes = computed(() =>
+    this.blocks().flatMap((block, index) => (block.hidden?.length ? [index] : [])),
+  );
+
+  readonly canFold = computed(() => this.foldIndexes().length > 0);
+
+  readonly allExpanded = computed(() => {
+    const folds = this.foldIndexes();
+    if (folds.length === 0) {
+      return false;
+    }
+    const open = this.openGroups();
+    return folds.every((index) => open[index]);
+  });
+
+  readonly allCollapsed = computed(() => {
+    const folds = this.foldIndexes();
+    if (folds.length === 0) {
+      return true;
+    }
+    const open = this.openGroups();
+    return folds.every((index) => !open[index]);
+  });
+
+  constructor() {
+    effect(() => {
+      this.detail()?.issue.fingerprint;
+      this.openGroups.set({});
+      this.showContext.set(false);
+    });
+  }
+
   readonly ids = computed(() => {
     const map = this.event()?.businessIds ?? this.detail()?.issue.lastBusinessIds ?? {};
     return Object.entries(map);
@@ -48,19 +81,15 @@ export class IssueDetailView {
   }
 
   kindLabel(kind: string): string {
-    if (kind === 'FLEXIBLE_SEARCH') {
-      return 'FlexibleSearch';
-    }
-    if (kind === 'MODEL_SAVE') {
-      return 'Model save';
-    }
-    if (kind === 'CRONJOB') {
-      return 'CronJob';
-    }
-    if (kind === 'IMPEX') {
-      return 'ImpEx';
-    }
-    return (kind || 'OTHER').replaceAll('_', ' ');
+    return labelForKind(kind);
+  }
+
+  kindTone(kind: string): string {
+    return kindKey(kind);
+  }
+
+  titleOf(title: string, kind: string): string {
+    return displayTitle(title, kind);
   }
 
   toggleGroup(index: number): void {
@@ -69,6 +98,18 @@ export class IssueDetailView {
 
   isOpen(index: number): boolean {
     return !!this.openGroups()[index];
+  }
+
+  expandAll(): void {
+    const next: Record<number, boolean> = {};
+    for (const index of this.foldIndexes()) {
+      next[index] = true;
+    }
+    this.openGroups.set(next);
+  }
+
+  collapseAll(): void {
+    this.openGroups.set({});
   }
 
   async copyStack(): Promise<void> {
