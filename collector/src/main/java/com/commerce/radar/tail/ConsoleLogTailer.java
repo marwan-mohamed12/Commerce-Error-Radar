@@ -183,6 +183,9 @@ public class ConsoleLogTailer implements SmartLifecycle {
         String mode = status.getMode() == null || "IDLE".equals(status.getMode())
                 ? (fromEnd ? "LIVE" : "REPLAY")
                 : status.getMode();
+        if (currentRun != null) {
+            repository.endRun(currentRun.id());
+        }
         currentRun = repository.insertRun(home, currentFile.toString(), mode);
         status.setRunId(currentRun.id());
         status.setHybrisHome(home);

@@ -62,6 +62,28 @@ public class RadarRepository {
         return rows.stream().findFirst();
     }
 
+    public List<RunSummary> listRuns() {
+        return jdbc.query(
+                """
+                SELECT r.*,
+                    (SELECT COUNT(*) FROM events e WHERE e.run_id = r.id) AS event_count,
+                    (SELECT COUNT(DISTINCT e.fingerprint) FROM events e WHERE e.run_id = r.id) AS issue_count
+                FROM runs r
+                ORDER BY r.id DESC
+                """,
+                (rs, rowNum) -> new RunSummary(
+                        rs.getLong("id"),
+                        rs.getString("hybris_home"),
+                        rs.getString("log_path"),
+                        parseInstant(rs.getString("started_at")),
+                        parseInstant(rs.getString("ended_at")),
+                        rs.getString("mode"),
+                        rs.getLong("event_count"),
+                        rs.getLong("issue_count")
+                )
+        );
+    }
+
     /**
      * Drop leftover DEMO replay rows so a LIVE session does not keep showing sample issues.
      *
@@ -145,6 +167,28 @@ public class RadarRepository {
         return findIssue(incoming.fingerprint()).orElseThrow();
     }
 
+    public Optional<StoredIssue> findIssueInRun(String fingerprint, long runId) {
+        return jdbc.query(
+                """
+                SELECT
+                    i.fingerprint, i.title, i.level, i.kind, COUNT(e.id) AS count,
+                    MIN(e.ts) AS first_seen, MAX(e.ts) AS last_seen,
+                    i.has_custom_frame, i.muted,
+                    (SELECT e2.message FROM events e2
+                     WHERE e2.run_id = e.run_id AND e2.fingerprint = i.fingerprint
+                     ORDER BY e2.id DESC LIMIT 1) AS last_message,
+                    i.last_business_ids_json
+                FROM events e
+                JOIN issues i ON i.fingerprint = e.fingerprint
+                WHERE e.run_id = ? AND i.fingerprint = ?
+                GROUP BY i.fingerprint
+                """,
+                issueMapper(),
+                runId,
+                fingerprint
+        ).stream().findFirst();
+    }
+
     public Optional<StoredIssue> findIssue(String fingerprint) {
         List<StoredIssue> rows = jdbc.query("SELECT * FROM issues WHERE fingerprint = ?", issueMapper(), fingerprint);
         return rows.stream().findFirst();
@@ -154,7 +198,10 @@ public class RadarRepository {
         jdbc.update("UPDATE issues SET muted = ? WHERE fingerprint = ?", muted ? 1 : 0, fingerprint);
     }
 
-    public List<StoredIssue> listIssues(String level, String kind, String q, boolean mineOnly, boolean includeMuted) {
+    public List<StoredIssue> listIssues(Long runId, String level, String kind, String q, boolean includeMuted) {
+        if (runId != null && runId > 0) {
+            return listIssuesForRun(runId, level, kind, q, includeMuted);
+        }
         StringBuilder sql = new StringBuilder("SELECT * FROM issues WHERE 1=1");
         List<Object> args = new ArrayList<>();
         if (level != null && !level.isBlank() && !"ALL".equalsIgnoreCase(level)) {
@@ -164,9 +211,6 @@ public class RadarRepository {
         if (kind != null && !kind.isBlank() && !"ALL".equalsIgnoreCase(kind)) {
             sql.append(" AND kind = ?");
             args.add(kind.toUpperCase(Locale.ROOT));
-        }
-        if (mineOnly) {
-            sql.append(" AND has_custom_frame = 1");
         }
         if (!includeMuted) {
             sql.append(" AND muted = 0");
@@ -182,22 +226,73 @@ public class RadarRepository {
         return jdbc.query(sql.toString(), issueMapper(), args.toArray());
     }
 
-    public List<StoredEvent> listEventsForFingerprint(String fingerprint, int limit) {
+    public List<StoredIssue> listIssuesForRun(long runId, String level, String kind, String q, boolean includeMuted) {
+        StringBuilder sql = new StringBuilder(
+                """
+                SELECT
+                    i.fingerprint,
+                    i.title,
+                    i.level,
+                    i.kind,
+                    COUNT(e.id) AS count,
+                    MIN(e.ts) AS first_seen,
+                    MAX(e.ts) AS last_seen,
+                    i.has_custom_frame,
+                    i.muted,
+                    (
+                        SELECT e2.message FROM events e2
+                        WHERE e2.run_id = e.run_id AND e2.fingerprint = i.fingerprint
+                        ORDER BY e2.id DESC LIMIT 1
+                    ) AS last_message,
+                    i.last_business_ids_json
+                FROM events e
+                JOIN issues i ON i.fingerprint = e.fingerprint
+                WHERE e.run_id = ?
+                """
+        );
+        List<Object> args = new ArrayList<>();
+        args.add(runId);
+        if (level != null && !level.isBlank() && !"ALL".equalsIgnoreCase(level)) {
+            sql.append(" AND e.level = ?");
+            args.add(level.toUpperCase(Locale.ROOT));
+        }
+        if (kind != null && !kind.isBlank() && !"ALL".equalsIgnoreCase(kind)) {
+            sql.append(" AND i.kind = ?");
+            args.add(kind.toUpperCase(Locale.ROOT));
+        }
+        if (!includeMuted) {
+            sql.append(" AND i.muted = 0");
+        }
+        if (q != null && !q.isBlank()) {
+            sql.append(" AND (i.title LIKE ? OR i.last_message LIKE ? OR i.fingerprint LIKE ?)");
+            String like = "%" + q + "%";
+            args.add(like);
+            args.add(like);
+            args.add(like);
+        }
+        sql.append(" GROUP BY i.fingerprint ORDER BY MAX(e.ts) DESC");
+        return jdbc.query(sql.toString(), issueMapper(), args.toArray());
+    }
+
+    public List<StoredEvent> listEventsForFingerprint(String fingerprint, Long runId, int limit) {
+        if (runId != null && runId > 0) {
+            return jdbc.query(
+                    "SELECT * FROM events WHERE fingerprint = ? AND run_id = ? ORDER BY id DESC LIMIT ?",
+                    eventMapper(), fingerprint, runId, limit
+            );
+        }
         return jdbc.query(
                 "SELECT * FROM events WHERE fingerprint = ? ORDER BY id DESC LIMIT ?",
                 eventMapper(), fingerprint, limit
         );
     }
 
-    public List<StoredEvent> searchEvents(String level, String q, boolean mineOnly, int limit) {
+    public List<StoredEvent> searchEvents(String level, String q, int limit) {
         StringBuilder sql = new StringBuilder("SELECT * FROM events WHERE 1=1");
         List<Object> args = new ArrayList<>();
         if (level != null && !level.isBlank() && !"ALL".equalsIgnoreCase(level)) {
             sql.append(" AND level = ?");
             args.add(level.toUpperCase(Locale.ROOT));
-        }
-        if (mineOnly) {
-            sql.append(" AND has_custom_frame = 1");
         }
         if (q != null && !q.isBlank()) {
             sql.append(" AND (message LIKE ? OR logger LIKE ? OR exception LIKE ? OR raw_text LIKE ?)");

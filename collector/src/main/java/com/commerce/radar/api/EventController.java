@@ -23,11 +23,10 @@ public class EventController {
     public List<EventResponse> search(
             @RequestParam(name = "level", required = false) String level,
             @RequestParam(name = "q", required = false) String q,
-            @RequestParam(name = "mineOnly", defaultValue = "false") boolean mineOnly,
             @RequestParam(name = "limit", defaultValue = "100") int limit
     ) {
         int capped = Math.min(Math.max(limit, 1), 500);
-        return repository.searchEvents(level, q, mineOnly, capped)
+        return repository.searchEvents(level, q, capped)
                 .stream()
                 .map(EventResponse::from)
                 .toList();

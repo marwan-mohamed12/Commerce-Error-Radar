@@ -94,13 +94,13 @@ npm run build
 
 ## What you get
 
-- Live ERROR / WARN while the server runs (tail from EOF, never load a multi-GB file)
+- Live ERROR / WARN for the current Radar session (restart Radar to start a clean console; older runs stay in History)
+- Tail from EOF, never load a multi-GB file
 - Full Java stack + ~30 lines of preceding context
 - Duplicates grouped (one issue, count 47)
 - Fingerprint on *your* code, not `de.hybris.*`
 - Order / product / user / cronjob / catalog version extracted when present
 - Classifiers: CronJob, ImpEx, OCC, FlexibleSearch, Solr, Interceptor, Model save
-- “Mine only” hides issues with no custom-package frame
 - Ignore list in `collector/src/main/resources/application.properties` (Solr ping, session replication, HAC, actuator)
 - Mute a fingerprint, copy stack, open an old `console-*.log` and replay it
 - Log rotation: a newer `console-YYYYMMDD.log` is picked up without restarting the collector

@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, computed, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { Filters, Issue, IssueDetail, RunStatus } from './models';
+import { Filters, Issue, IssueDetail, RunSession, RunStatus } from './models';
 
 @Injectable({ providedIn: 'root' })
 export class RadarService {
@@ -13,11 +13,18 @@ export class RadarService {
     level: 'ALL',
     kind: 'ALL',
     q: '',
-    mineOnly: false,
   });
   readonly connected = signal(false);
   readonly flashFingerprint = signal<string | null>(null);
   readonly error = signal<string | null>(null);
+  readonly sessions = signal<RunSession[]>([]);
+  readonly viewRunId = signal<number | null>(null);
+
+  readonly viewingHistory = computed(() => {
+    const current = this.status()?.id ?? 0;
+    const view = this.viewRunId();
+    return view != null && current > 0 && view !== current;
+  });
 
   readonly selected = computed(() => {
     const fp = this.selectedFingerprint();
@@ -30,8 +37,12 @@ export class RadarService {
   constructor(private readonly http: HttpClient) {}
 
   async bootstrap(): Promise<void> {
-    await Promise.all([this.refreshStatus(), this.refreshIssues()]);
+    await Promise.all([this.refreshStatus(), this.refreshSessions(), this.refreshIssues()]);
     this.connect();
+  }
+
+  activeRunId(): number {
+    return this.viewRunId() ?? this.status()?.id ?? 0;
   }
 
   async refreshStatus(): Promise<void> {
@@ -56,8 +67,9 @@ export class RadarService {
     if (f.q.trim()) {
       params = params.set('q', f.q.trim());
     }
-    if (f.mineOnly) {
-      params = params.set('mineOnly', 'true');
+    const runId = this.activeRunId();
+    if (runId > 0) {
+      params = params.set('runId', String(runId));
     }
     const issues = await firstValueFrom(this.http.get<Issue[]>('/api/issues', { params }));
     this.issues.set(issues);
@@ -71,12 +83,36 @@ export class RadarService {
 
   async select(fingerprint: string): Promise<void> {
     this.selectedFingerprint.set(fingerprint);
-    const detail = await firstValueFrom(
-      this.http.get<IssueDetail>('/api/issues/one', {
-        params: new HttpParams().set('fingerprint', fingerprint),
-      }),
-    );
+    let params = new HttpParams().set('fingerprint', fingerprint);
+    const runId = this.activeRunId();
+    if (runId > 0) {
+      params = params.set('runId', String(runId));
+    }
+    const detail = await firstValueFrom(this.http.get<IssueDetail>('/api/issues/one', { params }));
     this.detail.set(detail);
+  }
+
+  async refreshSessions(): Promise<void> {
+    try {
+      const sessions = await firstValueFrom(this.http.get<RunSession[]>('/api/runs'));
+      this.sessions.set(sessions);
+    } catch {
+      /* status refresh already reports collector down */
+    }
+  }
+
+  viewSession(runId: number): void {
+    this.viewRunId.set(runId);
+    this.selectedFingerprint.set(null);
+    this.detail.set(null);
+    void this.refreshIssues();
+  }
+
+  viewCurrentSession(): void {
+    this.viewRunId.set(null);
+    this.selectedFingerprint.set(null);
+    this.detail.set(null);
+    void this.refreshIssues();
   }
 
   setFilter<K extends keyof Filters>(key: K, value: Filters[K]): void {
@@ -103,6 +139,8 @@ export class RadarService {
       this.http.post<RunStatus>('/api/runs/open', { path, replay }),
     );
     this.status.set(status);
+    this.viewRunId.set(null);
+    await this.refreshSessions();
     await this.refreshIssues();
   }
 
@@ -116,20 +154,26 @@ export class RadarService {
     });
     source.addEventListener('issue', (event) => {
       this.connected.set(true);
+      let fingerprint: string | null = null;
       try {
-        const payload = JSON.parse((event as MessageEvent).data) as {
-          issue?: Issue;
-        };
-        if (payload.issue) {
-          this.upsertIssue(payload.issue);
-        }
+        const payload = JSON.parse((event as MessageEvent).data) as { issue?: Issue };
+        fingerprint = payload.issue?.fingerprint ?? null;
       } catch {
-        /* ignore malformed frames */
+        fingerprint = null;
+      }
+      if (!this.viewingHistory()) {
+        void this.refreshIssues().then(() => {
+          if (fingerprint) {
+            this.flash(fingerprint);
+          }
+        });
       }
       void this.refreshStatus();
+      void this.refreshSessions();
     });
     source.addEventListener('status', () => {
       void this.refreshStatus();
+      void this.refreshSessions();
     });
     source.onopen = () => {
       this.connected.set(true);
@@ -144,36 +188,6 @@ export class RadarService {
     this.source?.close();
     this.source = null;
     this.connected.set(false);
-  }
-
-  private upsertIssue(incoming: Issue): void {
-    const f = this.filters();
-    if (f.level !== 'ALL' && incoming.level !== f.level) {
-      return;
-    }
-    if (f.kind !== 'ALL' && incoming.kind !== f.kind) {
-      return;
-    }
-    if (f.mineOnly && !incoming.hasCustomFrame) {
-      return;
-    }
-    if (f.q.trim()) {
-      const q = f.q.trim().toLowerCase();
-      const blob = `${incoming.title} ${incoming.lastMessage} ${incoming.fingerprint}`.toLowerCase();
-      if (!blob.includes(q)) {
-        return;
-      }
-    }
-    this.issues.update((list) => {
-      const rest = list.filter((i) => i.fingerprint !== incoming.fingerprint);
-      return [incoming, ...rest];
-    });
-    this.flash(incoming.fingerprint);
-    if (this.selectedFingerprint() === incoming.fingerprint) {
-      void this.select(incoming.fingerprint);
-    } else if (!this.selectedFingerprint()) {
-      void this.select(incoming.fingerprint);
-    }
   }
 
   private flash(fingerprint: string): void {

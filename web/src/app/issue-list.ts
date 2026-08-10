@@ -21,6 +21,7 @@ export class IssueList {
   readonly selected = input<string | null>(null);
   readonly flash = input<string | null>(null);
   readonly canCollapse = input(false);
+  readonly viewingHistory = input(false);
   readonly pick = output<string>();
   readonly collapse = output<void>();
 
