@@ -10,21 +10,20 @@
 
 :root,
 [data-theme='dark'] {
-  --radar-canvas: #10161d;
-  --radar-canvas-2: #151c24;
-  --radar-surface: #1b232e;
-  --radar-raised: #242d3a;
-  --radar-rule: #334050;
-  --radar-copy: #ebe6db;
-  --radar-quiet: #b4aea2;
-  --radar-mute: #87919e;
+  --radar-canvas: #080808;
+  --radar-canvas-2: #0e0e0e;
+  --radar-surface: #141414;
+  --radar-raised: #1c1c1c;
+  --radar-rule: #2a2a2a;
+  --radar-copy: #eee8dc;
+  --radar-quiet: #b0aaa0;
+  --radar-mute: #7a756c;
   --radar-ember: #e07058;
   --radar-honey: #d9a84a;
   --radar-brass: #c9a36a;
-  --radar-signal: #5a9eae;
-  --radar-wash: radial-gradient(900px 420px at 8% -8%, color-mix(in srgb, #c9a36a 11%, transparent), transparent 62%),
-    radial-gradient(700px 380px at 100% 0%, color-mix(in srgb, #5a9eae 8%, transparent), transparent 55%),
-    linear-gradient(180deg, #141b23 0%, #10161d 34%);
+  --radar-signal: #c9a36a;
+  --radar-wash: radial-gradient(720px 320px at 0% 0%, color-mix(in srgb, #c9a36a 7%, transparent), transparent 58%),
+    linear-gradient(180deg, #0c0c0c 0%, #080808 42%);
 }
 
 [data-theme='light'] {
