@@ -183,15 +183,16 @@ public class ConsoleLogTailer implements SmartLifecycle {
         String mode = status.getMode() == null || "IDLE".equals(status.getMode())
                 ? (fromEnd ? "LIVE" : "REPLAY")
                 : status.getMode();
-        if (currentRun != null) {
+        StoredRun next = repository.findOrOpenRun(home, currentFile, mode);
+        if (currentRun != null && currentRun.id() != next.id()) {
             repository.endRun(currentRun.id());
         }
-        currentRun = repository.insertRun(home, currentFile.toString(), mode);
+        currentRun = next;
         status.setRunId(currentRun.id());
         status.setHybrisHome(home);
         status.setLogPath(currentFile.toString());
         status.setMode(mode);
-        status.setStartedAt(Instant.now());
+        status.setStartedAt(currentRun.startedAt() == null ? Instant.now() : currentRun.startedAt());
         status.setLive(true);
         status.setMessage("Tailing " + currentFile.getFileName());
         parser = new HybrisLogParser(properties.getCustomPackagePrefix());

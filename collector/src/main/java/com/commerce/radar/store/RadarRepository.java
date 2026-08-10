@@ -8,10 +8,14 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 
 @Repository
@@ -27,6 +31,7 @@ public class RadarRepository {
 
     public StoredRun insertRun(String hybrisHome, String logPath, String mode) {
         Instant now = Instant.now();
+        String path = LogPaths.normalize(logPath);
         GeneratedKeyHolder keys = new GeneratedKeyHolder();
         jdbc.update(con -> {
             PreparedStatement ps = con.prepareStatement(
@@ -34,14 +39,61 @@ public class RadarRepository {
                     Statement.RETURN_GENERATED_KEYS
             );
             ps.setString(1, hybrisHome);
-            ps.setString(2, logPath);
+            ps.setString(2, path);
             ps.setString(3, now.toString());
             ps.setString(4, mode);
             return ps;
         }, keys);
         Number id = keys.getKey();
         long runId = id == null ? 0L : id.longValue();
-        return new StoredRun(runId, hybrisHome, logPath, now, null, mode);
+        return new StoredRun(runId, hybrisHome, path, now, null, mode);
+    }
+
+    /**
+     * One console file is one session. Reopening the same path resumes the existing run
+     * and folds any duplicate run rows for that file into it.
+     */
+    public StoredRun findOrOpenRun(String hybrisHome, Path logFile, String mode) {
+        consolidateRunsByLogPath();
+        String path = LogPaths.normalize(logFile);
+        List<StoredRun> matches = listAllRuns().stream()
+                .filter(run -> LogPaths.normalize(run.logPath()).equals(path))
+                .sorted(Comparator.comparingLong(StoredRun::id))
+                .toList();
+        if (matches.isEmpty()) {
+            return insertRun(hybrisHome, path, mode);
+        }
+        StoredRun keep = matches.getFirst();
+        jdbc.update(
+                "UPDATE runs SET ended_at = NULL, log_path = ?, hybris_home = ?, mode = ? WHERE id = ?",
+                path,
+                hybrisHome,
+                mode,
+                keep.id()
+        );
+        return findRun(keep.id()).orElseThrow();
+    }
+
+    public void consolidateRunsByLogPath() {
+        Map<String, List<StoredRun>> byPath = new LinkedHashMap<>();
+        for (StoredRun run : listAllRuns()) {
+            byPath.computeIfAbsent(LogPaths.normalize(run.logPath()), key -> new ArrayList<>()).add(run);
+        }
+        for (List<StoredRun> group : byPath.values()) {
+            if (group.size() < 2) {
+                continue;
+            }
+            group.sort(Comparator.comparingLong(StoredRun::id));
+            long keepId = group.getFirst().id();
+            for (StoredRun extra : group.subList(1, group.size())) {
+                jdbc.update("UPDATE events SET run_id = ? WHERE run_id = ?", keepId, extra.id());
+                jdbc.update("DELETE FROM runs WHERE id = ?", extra.id());
+            }
+        }
+    }
+
+    private List<StoredRun> listAllRuns() {
+        return jdbc.query("SELECT * FROM runs ORDER BY id", runMapper());
     }
 
     public void updateRunLogPath(long runId, String logPath) {
@@ -63,6 +115,7 @@ public class RadarRepository {
     }
 
     public List<RunSummary> listRuns() {
+        consolidateRunsByLogPath();
         return jdbc.query(
                 """
                 SELECT r.*,
