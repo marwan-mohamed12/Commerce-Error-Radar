@@ -43,6 +43,18 @@ export class IssueDetailView {
   }
 
   kindLabel(kind: string): string {
+    if (kind === 'FLEXIBLE_SEARCH') {
+      return 'FlexibleSearch';
+    }
+    if (kind === 'MODEL_SAVE') {
+      return 'Model save';
+    }
+    if (kind === 'CRONJOB') {
+      return 'CronJob';
+    }
+    if (kind === 'IMPEX') {
+      return 'ImpEx';
+    }
     return (kind || 'OTHER').replaceAll('_', ' ');
   }
 

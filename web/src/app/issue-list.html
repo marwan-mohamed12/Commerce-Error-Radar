@@ -1,51 +1,81 @@
-<ul class="divide-y divide-rule" role="listbox">
-  @for (issue of issues(); track issue.fingerprint) {
-    <li>
-      <button
-        type="button"
-        class="relative flex w-full min-w-0 gap-3 px-4 py-3 text-left transition hover:bg-raised/70 sm:px-5"
-        [class.bg-raised]="selected() === issue.fingerprint"
-        (click)="pick.emit(issue.fingerprint)"
-      >
-        @if (flash() === issue.fingerprint) {
-          <span
-            class="radar-sweep pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-signal/20 to-transparent"
-            style="animation: radar-sweep 1.15s ease-out"
-          ></span>
-        }
-        <span
-          class="mt-1.5 h-8 w-1 shrink-0 rounded-full"
-          [class.bg-ember]="issue.level === 'ERROR' || issue.level === 'FATAL'"
-          [class.bg-honey]="issue.level === 'WARN'"
-          aria-hidden="true"
-        ></span>
-        <span class="min-w-0 flex-1">
-          <span class="block break-words text-[0.95rem] leading-snug text-copy">{{ issue.title }}</span>
-          <span class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 font-mono text-[0.68rem] text-mute">
-            <span [class.text-ember]="issue.level !== 'WARN'" [class.text-honey]="issue.level === 'WARN'">
-              {{ issue.level }}
-            </span>
-            <span>·</span>
-            <span>{{ kindLabel(issue.kind) }}</span>
-            @if (issue.hasCustomFrame) {
-              <span class="text-brass">· mine</span>
-            }
-            <span class="ml-auto text-quiet">{{ rel(issue.lastSeen) }}</span>
-          </span>
-        </span>
-        <span
-          class="mt-0.5 shrink-0 rounded-md bg-canvas px-1.5 py-0.5 font-mono text-[0.72rem] tabular-nums text-quiet"
+<nav class="flex min-h-full min-w-0 flex-col" aria-label="Console issues">
+  <header
+    class="sticky top-0 z-20 flex items-baseline justify-between gap-3 border-b border-rule bg-canvas-2 px-3 py-2.5 sm:px-4"
+  >
+    <h2 class="font-mono text-[0.65rem] font-medium tracking-[0.16em] text-mute uppercase">Console</h2>
+    <p class="font-mono text-[0.68rem] tabular-nums text-quiet">
+      {{ issues().length }}
+      <span class="text-mute">{{ issues().length === 1 ? 'issue' : 'issues' }}</span>
+    </p>
+  </header>
+
+  @for (group of groups(); track group.kind) {
+    <section>
+      @if (showHeads()) {
+        <h3
+          class="sticky top-[2.6rem] z-10 flex items-baseline justify-between gap-2 border-b border-rule/80 bg-canvas-2/95 px-3 py-1.5 font-mono text-[0.62rem] tracking-[0.14em] text-brass uppercase sm:px-4"
         >
-          {{ issue.count }}
-        </span>
-      </button>
-    </li>
+          <span>{{ kindLabel(group.kind) }}</span>
+          <span class="tabular-nums text-mute">{{ group.issues.length }}</span>
+        </h3>
+      }
+      <ul role="listbox">
+        @for (issue of group.issues; track issue.fingerprint) {
+          <li>
+            <button
+              type="button"
+              role="option"
+              class="relative w-full min-w-0 border-l-2 px-3 py-2.5 text-left transition-colors sm:px-4"
+              [class.border-brass]="selected() === issue.fingerprint"
+              [class.bg-raised]="selected() === issue.fingerprint"
+              [class.border-transparent]="selected() !== issue.fingerprint"
+              [class.hover:bg-raised/55]="selected() !== issue.fingerprint"
+              [class.opacity-40]="issue.muted"
+              [attr.aria-selected]="selected() === issue.fingerprint"
+              [attr.data-fp]="issue.fingerprint"
+              (click)="pick.emit(issue.fingerprint)"
+            >
+              @if (flash() === issue.fingerprint) {
+                <span
+                  class="radar-sweep pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-brass/20 to-transparent"
+                  style="animation: radar-sweep 1.15s ease-out"
+                ></span>
+              }
+              <span class="relative flex min-w-0 items-baseline gap-2 font-mono text-[0.68rem] tabular-nums">
+                <span
+                  class="w-7 shrink-0 font-medium tracking-[0.08em]"
+                  [class.text-ember]="issue.level !== 'WARN'"
+                  [class.text-honey]="issue.level === 'WARN'"
+                >
+                  {{ stamp(issue.level) }}
+                </span>
+                <span class="text-mute">{{ clock(issue.lastSeen) }}</span>
+                @if (issue.hasCustomFrame) {
+                  <span class="text-brass">mine</span>
+                }
+                @if (issue.muted) {
+                  <span class="text-mute">muted</span>
+                }
+                <span class="ml-auto text-quiet">×{{ issue.count }}</span>
+              </span>
+              <span class="relative mt-1 block line-clamp-2 text-[0.9rem] leading-snug break-words text-copy">
+                {{ issue.title }}
+              </span>
+              <span class="relative mt-1 flex min-w-0 items-baseline gap-2 font-mono text-[0.68rem]">
+                <span class="min-w-0 flex-1 truncate text-mute">{{ issue.lastMessage || kindLabel(issue.kind) }}</span>
+                <span class="shrink-0 tabular-nums text-mute/90">{{ rel(issue.lastSeen) }}</span>
+              </span>
+            </button>
+          </li>
+        }
+      </ul>
+    </section>
   } @empty {
-    <li class="px-6 py-20 text-center">
+    <div class="px-6 py-20 text-center">
       <p class="font-display text-xl text-copy">Quiet for now</p>
       <p class="mx-auto mt-2 max-w-[28ch] text-sm leading-relaxed text-mute">
         ERROR and WARN from the Hybris console will land here and stay put.
       </p>
-    </li>
+    </div>
   }
-</ul>
+</nav>
