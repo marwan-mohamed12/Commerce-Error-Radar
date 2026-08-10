@@ -114,7 +114,7 @@ Parent POM skips `spring-boot:run`; only `collector` runs the app. Always use `-
 
 | Method | Path | Purpose |
 |---|---|---|
-| GET | `/api/runs` | past sessions (event/issue counts) |
+| GET | `/api/runs` | sessions — one per console log file |
 | GET | `/api/runs/current` | tail status |
 | POST | `/api/runs/open` | open a log file (`path`, `replay`) |
 | GET | `/api/issues` | issues for a session (`runId` defaults to current, plus `level`, `kind`, `q`) |
@@ -124,6 +124,8 @@ Parent POM skips `spring-boot:run`; only `collector` runs the app. Always use `-
 | GET | `/api/stream` | SSE (`issue`, `status`, `hello`) |
 
 SQLite file: `collector/data/radar.db` (gitignored). Schema on startup in `SchemaInitializer`.
+
+One `console-*.log` file is one session. Restarting Radar on the same file resumes that session. A new Hybris log file starts a new session.
 
 ### UI (`web/`)
 

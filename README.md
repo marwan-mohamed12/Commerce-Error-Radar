@@ -94,7 +94,7 @@ npm run build
 
 ## What you get
 
-- Live ERROR / WARN for the current Radar session (restart Radar to start a clean console; older runs stay in History)
+- Live ERROR / WARN for the current log-file session (one `console-*.log` = one session; History lists other files)
 - Tail from EOF, never load a multi-GB file
 - Full Java stack + ~30 lines of preceding context
 - Duplicates grouped (one issue, count 47)
