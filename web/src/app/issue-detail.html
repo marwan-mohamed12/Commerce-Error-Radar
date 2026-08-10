@@ -8,10 +8,13 @@
     @if (canGoBack()) {
       <button
         type="button"
-        class="inline-flex w-fit text-sm text-mute hover:text-brass lg:hidden"
+        class="inline-flex min-h-9 w-fit items-center gap-1.5 text-sm text-mute hover:text-brass lg:hidden"
         (click)="back.emit()"
       >
-        ← Issues
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="m15 18-6-6 6-6"></path>
+        </svg>
+        Issues
       </button>
     }
 
@@ -62,16 +65,31 @@
       <div class="flex flex-wrap gap-2 pt-1">
         <button
           type="button"
-          class="rounded-lg border border-rule px-3 py-1.5 text-sm text-quiet hover:border-brass hover:text-brass"
+          class="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-rule px-3 py-1.5 text-sm text-quiet hover:border-brass hover:text-brass"
           (click)="copyStack()"
         >
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect width="14" height="14" x="8" y="8" rx="2"></rect>
+            <path d="M4 16V6a2 2 0 0 1 2-2h10"></path>
+          </svg>
           {{ copied() ? 'Copied' : 'Copy stack' }}
         </button>
         <button
           type="button"
-          class="rounded-lg border border-rule px-3 py-1.5 text-sm text-quiet hover:border-brass hover:text-brass"
+          class="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-rule px-3 py-1.5 text-sm text-quiet hover:border-brass hover:text-brass"
           (click)="toggleMute()"
         >
+          @if (d.issue.muted) {
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 5v14M8 9H6a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h2l5 4V5L8 9z"></path>
+              <path d="m22 9-6 6M16 9l6 6"></path>
+            </svg>
+          } @else {
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M11 5 6 9H4a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h2l5 4V5z"></path>
+              <path d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8.5 8.5 0 0 1 0 12"></path>
+            </svg>
+          }
           {{ d.issue.muted ? 'Unmute' : 'Mute' }}
         </button>
       </div>
@@ -92,49 +110,107 @@
     }
 
     <section class="min-w-0">
-      <h2 class="mb-2 text-[0.72rem] font-medium tracking-[0.08em] text-mute uppercase">Stack</h2>
-      <p class="mb-2 text-[0.75rem] text-mute">Your frames are marked. Hybris frames stay folded.</p>
+      <div class="mb-2 flex flex-wrap items-baseline justify-between gap-2">
+        <h2 class="text-[0.72rem] font-medium tracking-[0.08em] text-mute uppercase">Stack</h2>
+        <p class="font-mono text-[0.62rem] tracking-[0.04em] text-mute">
+          <span class="text-ember">exception</span>
+          <span class="mx-1.5 text-rule">·</span>
+          <span class="text-brass">your package</span>
+          <span class="mx-1.5 text-rule">·</span>
+          <span>Hybris stays folded</span>
+        </p>
+      </div>
       <ol
-        class="min-w-0 rounded-xl border border-rule bg-surface p-3 font-mono text-[0.78rem] leading-[1.65] sm:p-4"
+        class="stack-console min-w-0 py-2"
         [class.overflow-x-auto]="wide()"
       >
         @for (block of blocks(); track $index) {
-          @if (block.type === 'line' && block.line) {
+          @if (block.line; as line) {
             <li
-              class="border-l-2 py-0.5 pl-3"
-              [class.log-dump]="!wide()"
-              [class.log-line]="wide()"
-              [class.border-brass]="block.line.mine"
-              [class.bg-brass/10]="block.line.mine"
-              [class.text-copy]="block.line.mine || block.line.kind === 'cause' || block.line.kind === 'type'"
-              [class.border-transparent]="!block.line.mine"
-              [class.text-ember]="block.line.kind === 'cause' || block.line.kind === 'type'"
-              [class.mt-2]="block.line.kind === 'cause' || block.line.kind === 'type'"
-              [class.text-mute]="
-                !block.line.mine && block.line.kind !== 'cause' && block.line.kind !== 'type'
-              "
+              class="stack-row"
+              [attr.data-kind]="line.kind"
+              [class.stack-row-mine]="line.mine"
+              [class.stack-row-wide]="wide()"
             >
-              {{ block.line.text }}
+              @switch (line.kind) {
+                @case ('header') {
+                  <span
+                    class="stack-level"
+                    [class.text-ember]="line.level === 'ERROR' || line.level === 'FATAL'"
+                    [class.text-honey]="line.level === 'WARN'"
+                    [class.text-mute]="line.level !== 'ERROR' && line.level !== 'FATAL' && line.level !== 'WARN'"
+                  >{{ line.level }}</span>
+                  <span class="stack-msg min-w-0" [class.log-line]="wide()" [class.log-dump]="!wide()">{{ line.detail }}</span>
+                }
+                @case ('type') {
+                  <span class="stack-ex">{{ line.exception }}</span>
+                  @if (line.detail) {
+                    <span class="stack-msg" [class.log-line]="wide()" [class.log-dump]="!wide()">{{ line.detail }}</span>
+                  }
+                }
+                @case ('cause') {
+                  <span class="stack-lead">{{ line.lead }}</span>
+                  <span class="stack-ex">{{ line.exception }}</span>
+                  @if (line.detail) {
+                    <span class="stack-msg" [class.log-line]="wide()" [class.log-dump]="!wide()">{{ line.detail }}</span>
+                  }
+                }
+                @case ('at') {
+                  <span
+                    class="stack-tag"
+                    [class.stack-tag-mine]="line.mine"
+                    [class.stack-tag-hybris]="line.hybris && !line.mine"
+                  >
+                    {{ line.mine ? 'yours' : line.hybris ? 'hybris' : line.framework ? 'fw' : 'at' }}
+                  </span>
+                  <span class="stack-frame min-w-0" [class.log-line]="wide()">
+                    @if (line.packageName) {
+                      <span class="stack-pkg">{{ pkg(line.packageName) }}.</span>
+                    }
+                    <span class="stack-cls">{{ line.simpleClass }}</span>
+                    @if (line.method) {
+                      <span class="stack-fn">.{{ line.method }}()</span>
+                    }
+                  </span>
+                  @if (line.file) {
+                    <span class="stack-src">{{ line.file }}{{ line.lineNo ? ':' + line.lineNo : '' }}</span>
+                  }
+                }
+                @case ('more') {
+                  <span class="stack-more">{{ line.text.trim() }}</span>
+                }
+                @default {
+                  <span class="stack-msg min-w-0" [class.log-line]="wide()" [class.log-dump]="!wide()">{{ line.text }}</span>
+                }
+              }
             </li>
           } @else if (block.hidden) {
-            <li class="my-1.5 min-w-0">
+            <li class="stack-fold">
               <button
                 type="button"
-                class="rounded-md border border-rule px-2 py-1 text-[0.7rem] text-mute hover:border-brass hover:text-brass"
+                class="stack-fold-btn"
                 (click)="toggleGroup($index)"
               >
                 {{ isOpen($index) ? 'Hide' : 'Show' }}
                 {{ block.hidden.length }} Hybris / framework frames
               </button>
               @if (isOpen($index)) {
-                <ol class="mt-1 min-w-0">
+                <ol class="mt-1">
                   @for (line of block.hidden; track $index) {
-                    <li
-                      class="border-l-2 border-transparent py-0.5 pl-3 text-mute/80"
-                      [class.log-dump]="!wide()"
-                      [class.log-line]="wide()"
-                    >
-                      {{ line.text }}
+                    <li class="stack-row stack-row-dim" [class.stack-row-wide]="wide()">
+                      <span class="stack-tag stack-tag-hybris">{{ line.hybris ? 'hybris' : 'fw' }}</span>
+                      <span class="stack-frame min-w-0" [class.log-line]="wide()">
+                        @if (line.packageName) {
+                          <span class="stack-pkg">{{ pkg(line.packageName) }}.</span>
+                        }
+                        <span class="stack-cls">{{ line.simpleClass || line.text.trim() }}</span>
+                        @if (line.method) {
+                          <span class="stack-fn">.{{ line.method }}()</span>
+                        }
+                      </span>
+                      @if (line.file) {
+                        <span class="stack-src">{{ line.file }}{{ line.lineNo ? ':' + line.lineNo : '' }}</span>
+                      }
                     </li>
                   }
                 </ol>
@@ -156,7 +232,7 @@
         </button>
         @if (showContext()) {
           <pre
-            class="mt-3 min-w-0 rounded-xl border border-rule bg-surface p-3 font-mono text-[0.75rem] leading-relaxed text-mute sm:p-4"
+            class="stack-console stack-context mt-3 min-w-0 p-3 text-mute sm:p-4"
             [class.log-dump]="!wide()"
             [class.log-line]="wide()"
             [class.overflow-x-auto]="wide()"
@@ -166,11 +242,12 @@
     }
   </article>
 } @else {
-  <div class="grid min-h-[50vh] place-items-center px-6 text-center">
+  <div class="grid min-h-full place-items-center px-6 text-center">
     <div>
+      <img src="favicon.svg" width="40" height="40" alt="" class="mx-auto mb-4 opacity-80" />
       <p class="font-display text-2xl text-copy">Select an issue</p>
       <p class="mx-auto mt-2 max-w-[28ch] text-sm leading-relaxed text-mute">
-        Title, stack, and IDs stay here. New errors keep arriving in the list.
+        Pick a row in the console. The stack stays here while new errors keep arriving.
       </p>
     </div>
   </div>

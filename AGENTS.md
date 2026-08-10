@@ -133,7 +133,7 @@ SQLite file: `collector/data/radar.db` (gitignored). Schema on startup in `Schem
 - SSE updates counts live.
 - Tailwind v4 with semantic tokens in `web/src/styles.css`. Dark/light via `data-theme` + `ThemeService` (`localStorage` key `radar-theme`).
 - Dark = night Hybris boot. Light = cool printout paper (blue-gray, not cream).
-- Keep Fraunces + Sora + IBM Plex Mono. Do not restyle as generic SaaS or acid-green terminal.
+- Keep Fraunces + Sora + JetBrains Mono. Do not restyle as generic SaaS or acid-green terminal.
 
 ## Code conventions
 

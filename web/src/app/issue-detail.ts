@@ -1,6 +1,6 @@
 import { Component, computed, input, output, signal } from '@angular/core';
 import { IssueDetail } from './models';
-import { StackBlock, collapseFramework, parseStack } from './stack';
+import { StackBlock, collapseFramework, parseStack, shortPackage } from './stack';
 import { clockTime, relativeTime } from './time';
 
 @Component({
@@ -41,6 +41,10 @@ export class IssueDetailView {
 
   clock(iso: string): string {
     return clockTime(iso);
+  }
+
+  pkg(packageName: string): string {
+    return shortPackage(packageName, this.wide());
   }
 
   kindLabel(kind: string): string {

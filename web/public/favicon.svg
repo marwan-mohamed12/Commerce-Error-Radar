@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Radar">
+  <rect x="1" y="1" width="30" height="30" rx="7" fill="#0e0e0e" stroke="#c9a36a" stroke-width="2"/>
+  <circle cx="16" cy="16" r="10.5" fill="none" stroke="#c9a36a" stroke-width="1.4" opacity="0.45"/>
+  <circle cx="16" cy="16" r="6.4" fill="none" stroke="#c9a36a" stroke-width="1.7"/>
+  <path d="M16 16L16 5.2A10.8 10.8 0 0 1 25.2 11.2Z" fill="#e07058"/>
+  <circle cx="23.6" cy="10.4" r="2.1" fill="#c9a36a"/>
+  <circle cx="16" cy="16" r="2.2" fill="#eee8dc"/>
+</svg>
