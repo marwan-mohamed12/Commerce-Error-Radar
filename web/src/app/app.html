@@ -1,5 +1,5 @@
-<div class="flex min-h-dvh min-w-0 flex-col">
-  <div #chrome class="sticky top-0 z-20 min-w-0 shrink-0 bg-canvas-2">
+<div class="flex h-full min-h-0 min-w-0 flex-col overflow-hidden">
+  <div class="min-w-0 shrink-0 bg-canvas-2">
   <header class="min-w-0 border-b border-rule bg-canvas-2/90 backdrop-blur-md">
     <div class="grid min-w-0 gap-2 px-3 py-2 sm:gap-3 sm:px-5 sm:py-3 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-center lg:px-6">
       <div class="flex min-w-0 items-center gap-3">
@@ -132,21 +132,48 @@
   }
   </div>
 
-  <main class="grid min-w-0 flex-1 lg:grid-cols-[minmax(20rem,28rem)_minmax(0,1fr)]">
+  <main
+    class="grid min-h-0 min-w-0 flex-1 overflow-hidden"
+    [class.lg:grid-cols-[minmax(20rem,28rem)_minmax(0,1fr)]]="railOpen()"
+    [class.lg:grid-cols-[3rem_minmax(0,1fr)]]="!railOpen()"
+  >
     <section
-      class="min-w-0 border-rule bg-canvas-2 lg:sticky lg:top-[var(--radar-chrome,7.5rem)] lg:max-h-[calc(100dvh-var(--radar-chrome,7.5rem))] lg:self-start lg:overflow-y-auto lg:border-r"
+      class="flex min-h-0 min-w-0 flex-col overflow-hidden border-rule bg-canvas-2 lg:border-r"
       [class.max-lg:hidden]="pane() === 'detail'"
       aria-label="Issues"
     >
-      <app-issue-list
-        [issues]="radar.issues()"
-        [selected]="radar.selectedFingerprint()"
-        [flash]="radar.flashFingerprint()"
-        (pick)="pickIssue($event)"
-      />
+      <div class="min-h-0 min-w-0 flex-1 overflow-y-auto" [class.lg:hidden]="!railOpen()">
+        <app-issue-list
+          [issues]="radar.issues()"
+          [selected]="radar.selectedFingerprint()"
+          [flash]="radar.flashFingerprint()"
+          [canCollapse]="true"
+          (collapse)="setRail(false)"
+          (pick)="pickIssue($event)"
+        />
+      </div>
+      <div
+        class="hidden w-full shrink-0 flex-col items-center pt-2"
+        [class.lg:flex]="!railOpen()"
+      >
+        <button
+          type="button"
+          class="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-quiet hover:bg-raised hover:text-brass"
+          aria-label="Maximize list"
+          title="Maximize list"
+          (click)="setRail(true)"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect width="18" height="18" x="3" y="3" rx="2"></rect>
+            <path d="M9 3v18"></path>
+            <path d="m14 9 3 3-3 3"></path>
+          </svg>
+        </button>
+      </div>
     </section>
     <section
-      class="min-w-0 bg-canvas"
+      class="min-h-0 min-w-0 overflow-y-auto bg-canvas"
+      [class.overflow-x-hidden]="railOpen()"
       [class.max-lg:hidden]="pane() === 'list'"
       aria-label="Selected issue"
     >
@@ -154,6 +181,7 @@
         [detail]="radar.detail()"
         [prefix]="radar.status()?.customPackagePrefix || 'com.yourcompany'"
         [canGoBack]="true"
+        [wide]="!railOpen()"
         (mute)="radar.mute($event.fingerprint, $event.muted)"
         (back)="pane.set('list')"
       />

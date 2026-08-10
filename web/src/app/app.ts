@@ -1,4 +1,4 @@
-import { afterNextRender, Component, ElementRef, OnDestroy, OnInit, inject, signal, viewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { IssueDetailView } from './issue-detail';
 import { IssueList } from './issue-list';
 import { ISSUE_KINDS } from './models';
@@ -10,7 +10,10 @@ import { fileName } from './time';
   selector: 'app-root',
   imports: [IssueList, IssueDetailView],
   templateUrl: './app.html',
-  host: { class: 'block min-h-dvh min-w-0' },
+  host: {
+    class: 'block h-full min-h-0 min-w-0',
+    '(document:keydown)': 'onChromeKey($event)',
+  },
 })
 export class App implements OnInit, OnDestroy {
   readonly radar = inject(RadarService);
@@ -21,23 +24,13 @@ export class App implements OnInit, OnDestroy {
   readonly replay = signal(true);
   readonly showOpen = signal(false);
   readonly pane = signal<'list' | 'detail'>('list');
-  private readonly chrome = viewChild<ElementRef<HTMLElement>>('chrome');
+  readonly railOpen = signal(true);
   private searchTimer: ReturnType<typeof setTimeout> | null = null;
-  private chromeObserver: ResizeObserver | null = null;
 
   constructor() {
-    afterNextRender(() => {
-      const el = this.chrome()?.nativeElement;
-      if (!el || typeof ResizeObserver === 'undefined') {
-        return;
-      }
-      const apply = () => {
-        document.documentElement.style.setProperty('--radar-chrome', `${Math.ceil(el.getBoundingClientRect().height)}px`);
-      };
-      apply();
-      this.chromeObserver = new ResizeObserver(apply);
-      this.chromeObserver.observe(el);
-    });
+    if (localStorage.getItem('radar-rail') === 'closed') {
+      this.railOpen.set(false);
+    }
   }
 
   ngOnInit(): void {
@@ -46,10 +39,26 @@ export class App implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.radar.disconnect();
-    this.chromeObserver?.disconnect();
     if (this.searchTimer) {
       clearTimeout(this.searchTimer);
     }
+  }
+
+  setRail(open: boolean): void {
+    this.railOpen.set(open);
+    localStorage.setItem('radar-rail', open ? 'open' : 'closed');
+  }
+
+  onChromeKey(event: KeyboardEvent): void {
+    const target = event.target as HTMLElement | null;
+    if (target?.closest('input, textarea, select, [contenteditable="true"]')) {
+      return;
+    }
+    if (event.key !== '[' && event.key !== ']') {
+      return;
+    }
+    event.preventDefault();
+    this.setRail(event.key === ']');
   }
 
   onSearch(value: string): void {

@@ -30,7 +30,9 @@ export class IssueList {
   readonly issues = input<Issue[]>([]);
   readonly selected = input<string | null>(null);
   readonly flash = input<string | null>(null);
+  readonly canCollapse = input(false);
   readonly pick = output<string>();
+  readonly collapse = output<void>();
 
   readonly groups = computed<IssueGroup[]>(() => {
     const buckets = new Map<string, Issue[]>();

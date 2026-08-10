@@ -12,6 +12,7 @@ export class IssueDetailView {
   readonly detail = input<IssueDetail | null>(null);
   readonly prefix = input('');
   readonly canGoBack = input(false);
+  readonly wide = input(false);
   readonly mute = output<{ fingerprint: string; muted: boolean }>();
   readonly back = output<void>();
 
