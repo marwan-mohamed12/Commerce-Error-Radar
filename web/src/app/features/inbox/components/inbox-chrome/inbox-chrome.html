@@ -45,7 +45,7 @@
         class="icon-btn"
         [class.icon-btn-on]="notify.enabled()"
         [attr.aria-pressed]="notify.enabled()"
-        [attr.aria-label]="notify.enabled() ? 'Turn off ERROR notifications' : 'Turn on ERROR notifications'"
+        [attr.aria-label]="notify.enabled() ? 'Turn off ERROR notifications' : 'Turn on ERROR notifications when Radar is in the background'"
         [attr.title]="notify.hint()"
         (click)="notify.toggle()"
       >

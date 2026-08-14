@@ -163,7 +163,7 @@ Use forward slashes in `application.properties`. Flags:
 - `--radar.hybris-home=D:/hybris` (omit this flag entirely if you want the file value)
 - `--radar.custom-package-prefix=com.yourcompany`
 - `--radar.tail-from-end=false` to replay the current file from the start
-- `--radar.notify-on-error=true` to default the header bell on (the UI still persists the toggle)
+- `--radar.notify-on-error=true` to default the header bell on (the UI still persists the toggle). Click the bell once, then leave Radar unfocused — a new ERROR toasts on Windows and badges the tab. WARN stays inbox-only.
 
 ## Out of scope
 

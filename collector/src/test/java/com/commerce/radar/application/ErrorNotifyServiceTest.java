@@ -68,6 +68,14 @@ class ErrorNotifyServiceTest {
     }
 
     @Test
+    void enablingFiresConfirmationToastEvenWhenTabFocused() {
+        service.setTabHidden(false);
+        service.setEnabled(true);
+        assertEquals(1, toaster.shown.size());
+        assertEquals("Notifications on", toaster.shown.getFirst().title());
+    }
+
+    @Test
     void storedSettingOverridesProperty() {
         when(repository.findSetting(ErrorNotifyService.SETTING_ENABLED)).thenReturn(Optional.of("false"));
         RadarProperties properties = new RadarProperties();

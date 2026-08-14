@@ -14,7 +14,7 @@ import java.util.Optional;
 
 /**
  * Optional ERROR notify: persist the toggle, tell the UI via SSE, toast on Windows
- * only while the dashboard tab reports it is in the background.
+ * only while the dashboard reports it is unfocused or the tab is hidden.
  */
 @Service
 @DependsOn("schemaInitializer")
@@ -67,6 +67,9 @@ public class ErrorNotifyService {
         this.enabled = enabled;
         repository.putSetting(SETTING_ENABLED, enabled ? "true" : "false");
         log.info("ERROR notifications {}", enabled ? "on" : "off");
+        if (enabled) {
+            toaster.show(ErrorNotification.confirmation());
+        }
     }
 
     public void setTabHidden(boolean hidden) {

@@ -29,6 +29,8 @@ public class RadarConfiguration {
                         .allowedOrigins(
                                 "http://localhost:4200",
                                 "http://127.0.0.1:4200",
+                                "http://localhost:4500",
+                                "http://127.0.0.1:4500",
                                 "http://localhost:5173"
                         )
                         .allowedMethods("GET", "POST", "PATCH", "DELETE", "OPTIONS")

@@ -11,6 +11,7 @@ class WindowsToastXmlTest {
     @Test
     void escapesMarkupInTitleAndBody() {
         String xml = WindowsToastXml.document("Radar · ERROR & OCC", "<script>alert('x')</script>");
+        assertTrue(xml.contains("duration=\"long\""));
         assertTrue(xml.contains("Radar · ERROR &amp; OCC"));
         assertTrue(xml.contains("&lt;script&gt;alert(&apos;x&apos;)&lt;/script&gt;"));
         assertFalse(xml.contains("<script>"));
