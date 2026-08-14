@@ -44,10 +44,8 @@
       </h1>
 
       <p
-        class="min-w-0 text-[0.95rem] leading-relaxed text-quiet"
+        class="min-w-0 whitespace-pre-wrap break-words text-[0.95rem] leading-relaxed text-quiet"
         [class.max-w-prose]="!wide()"
-        [class.break-words]="!wide()"
-        [class.lg:whitespace-pre]="wide()"
       >
         {{ event()?.message || d.issue.lastMessage }}
       </p>
@@ -221,17 +219,13 @@
           </div>
         }
       </div>
-      <ol
-        class="stack-console min-w-0 py-2"
-        [class.overflow-x-auto]="wide()"
-      >
+      <ol class="stack-console min-w-0 overflow-x-hidden py-2">
         @for (block of blocks(); track $index) {
           @if (block.line; as line) {
             <li
               class="stack-row"
               [attr.data-kind]="line.kind"
               [class.stack-row-mine]="line.mine"
-              [class.stack-row-wide]="wide()"
             >
               @switch (line.kind) {
                 @case ('header') {
@@ -241,19 +235,19 @@
                     [class.text-honey]="line.level === 'WARN'"
                     [class.text-mute]="line.level !== 'ERROR' && line.level !== 'FATAL' && line.level !== 'WARN'"
                   >{{ line.level }}</span>
-                  <span class="stack-msg min-w-0" [class.log-line]="wide()" [class.log-dump]="!wide()">{{ line.detail }}</span>
+                  <span class="stack-msg log-dump min-w-0">{{ line.detail }}</span>
                 }
                 @case ('type') {
                   <span class="stack-ex">{{ line.exception }}</span>
                   @if (line.detail) {
-                    <span class="stack-msg" [class.log-line]="wide()" [class.log-dump]="!wide()">{{ line.detail }}</span>
+                    <span class="stack-msg log-dump">{{ line.detail }}</span>
                   }
                 }
                 @case ('cause') {
                   <span class="stack-lead">{{ line.lead }}</span>
                   <span class="stack-ex">{{ line.exception }}</span>
                   @if (line.detail) {
-                    <span class="stack-msg" [class.log-line]="wide()" [class.log-dump]="!wide()">{{ line.detail }}</span>
+                    <span class="stack-msg log-dump">{{ line.detail }}</span>
                   }
                 }
                 @case ('at') {
@@ -264,7 +258,7 @@
                   >
                     {{ line.mine ? 'yours' : line.hybris ? 'hybris' : line.framework ? 'fw' : 'at' }}
                   </span>
-                  <span class="stack-frame min-w-0" [class.log-line]="wide()">
+                  <span class="stack-frame log-dump min-w-0">
                     @if (line.packageName) {
                       <span class="stack-pkg">{{ pkg(line.packageName) }}.</span>
                     }
@@ -281,7 +275,7 @@
                   <span class="stack-more">{{ line.text.trim() }}</span>
                 }
                 @default {
-                  <span class="stack-msg min-w-0" [class.log-line]="wide()" [class.log-dump]="!wide()">{{ line.text }}</span>
+                  <span class="stack-msg log-dump min-w-0">{{ line.text }}</span>
                 }
               }
             </li>
@@ -298,9 +292,9 @@
               @if (isOpen($index)) {
                 <ol class="mt-1">
                   @for (line of block.hidden; track $index) {
-                    <li class="stack-row stack-row-dim" [class.stack-row-wide]="wide()">
+                    <li class="stack-row stack-row-dim">
                       <span class="stack-tag stack-tag-hybris">{{ line.hybris ? 'hybris' : 'fw' }}</span>
-                      <span class="stack-frame min-w-0" [class.log-line]="wide()">
+                      <span class="stack-frame log-dump min-w-0">
                         @if (line.packageName) {
                           <span class="stack-pkg">{{ pkg(line.packageName) }}.</span>
                         }
@@ -332,12 +326,7 @@
           {{ showContext() ? 'Hide preceding log lines' : 'Show preceding log lines' }}
         </button>
         @if (showContext()) {
-          <pre
-            class="stack-console stack-context mt-3 min-w-0 p-3 text-mute sm:p-4"
-            [class.log-dump]="!wide()"
-            [class.log-line]="wide()"
-            [class.overflow-x-auto]="wide()"
-          >{{ event()?.contextText }}</pre>
+          <pre class="stack-console stack-context log-dump mt-3 min-w-0 overflow-x-hidden p-3 text-mute sm:p-4">{{ event()?.contextText }}</pre>
         }
       </section>
     }
