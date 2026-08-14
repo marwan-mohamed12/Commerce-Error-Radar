@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-label="Screenshot placeholder: inbox, light theme">
+  <rect width="1600" height="900" fill="#e8edf2"/>
+  <rect x="48" y="48" width="1504" height="804" fill="none" stroke="#c5ced8" stroke-width="2" stroke-dasharray="14 10" rx="16"/>
+  <text x="800" y="410" text-anchor="middle" fill="#8a6918" font-family="Georgia, serif" font-size="36">Screenshot</text>
+  <text x="800" y="462" text-anchor="middle" fill="#1a2330" font-family="Segoe UI, sans-serif" font-size="22">Inbox · light theme</text>
+  <text x="800" y="510" text-anchor="middle" fill="#5c6774" font-family="Consolas, monospace" font-size="16">docs/screenshots/inbox-light.png</text>
+  <text x="800" y="548" text-anchor="middle" fill="#8a929c" font-family="Segoe UI, sans-serif" font-size="14">Same layout on cool printout paper</text>
+</svg>
