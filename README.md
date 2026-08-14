@@ -1,174 +1,414 @@
 # Commerce Error Radar
 
-Local error inbox for **SAP Commerce (Hybris) + Spring** on Windows.
+Local **ERROR / WARN inbox** for **SAP Commerce (Hybris) + Spring** on Windows.
 
-You start `hybrisserver` as usual. This app tails today’s Tomcat console log, keeps `ERROR` / `WARN` events, groups duplicates, and shows them in a browser UI that does not scroll away.
+You start `hybrisserver.bat` the way you always do. Radar tails today’s Tomcat console log, keeps only `ERROR` / `WARN` / `FATAL`, groups repeats by fingerprint, and shows them in a browser UI that does not scroll away with the log.
 
-**Scope: local only.** No SAP Commerce Cloud, no OpenSearch, no Dynatrace, no custom Hybris extension.
+It is a **local** tool. It never starts or wraps `hybrisserver.bat` — it only reads the console log file.
 
 ```text
 hybrisserver.bat
-       │
-       ▼
-hybris\log\tomcat\console-YYYYMMDD.log
-       │  tail
-       ▼
-Spring Boot collector  →  SQLite  →  http://localhost:4200  (Angular)
+        │
+        ▼
+<HYBRIS_HOME>\hybris\log\tomcat\console-YYYYMMDD.log
+        │  tail from EOF  (never load a multi-GB file)
+        ▼
+Spring Boot collector :8088  →  SQLite  →  Angular UI
 ```
+
+| | |
+|---|---|
+| Collector | `http://localhost:8088` |
+| UI (`npm start`) | `http://localhost:4500` |
+| UI (`ng serve` / `angular.json`) | `http://localhost:4200` |
+
+The UI proxies `/api` to the collector. Open the port you actually started.
+
+---
+
+## Screenshots
+
+Replace each placeholder SVG with a PNG of the same name (see [`docs/screenshots/README.md`](docs/screenshots/README.md)), then change `.svg` → `.png` in the image links below.
+
+<p align="center">
+  <img src="docs/screenshots/inbox-dark.svg" alt="Inbox — dark theme. Replace with docs/screenshots/inbox-dark.png" width="920">
+</p>
+<p align="center"><sub>Inbox · dark theme · issue selected</sub></p>
+
+<p align="center">
+  <img src="docs/screenshots/inbox-light.svg" alt="Inbox — light theme. Replace with docs/screenshots/inbox-light.png" width="920">
+</p>
+<p align="center"><sub>Inbox · light theme</sub></p>
+
+<p align="center">
+  <img src="docs/screenshots/issue-stack.svg" alt="Issue stack. Replace with docs/screenshots/issue-stack.png" width="920">
+</p>
+<p align="center"><sub>Stack · your package highlighted · Hybris frames folded</sub></p>
+
+<p align="center">
+  <img src="docs/screenshots/business-filter.svg" alt="Business id filter. Replace with docs/screenshots/business-filter.png" width="920">
+</p>
+<p align="center"><sub>Filter this session by order, product, user, CronJob, or ImpEx file</sub></p>
+
+<p align="center">
+  <img src="docs/screenshots/history.svg" alt="Session history. Replace with docs/screenshots/history.png" width="920">
+</p>
+<p align="center"><sub>History · one console file is one session</sub></p>
+
+---
+
+## Why it exists
+
+Hybris console logs are huge, noisy, and gone the moment the terminal scrolls. You cannot grep a 4 GB `console-YYYYMMDD.log` every time a CronJob fails, and a Solr ping WARN should not hide the NPE that comes after it.
+
+Radar is the night-shift inbox for that file:
+
+- **Live.** Tails from EOF. Polls file length. Does not read the whole log into memory.
+- **Grouped.** The same OCC NPE is one issue with a count, not 47 rows.
+- **Fingerprinted on your code.** The key is `ExceptionName` + the first frame under your package prefix — not `de.hybris.*`, Spring, or Tomcat.
+- **Pinned.** The UI stays put while new events arrive over SSE.
+
+---
+
+## What you get
+
+- Live ERROR / WARN / FATAL for the current log-file session
+- One `console-*.log` file = one session. Restarting Radar on the same path resumes it. History lists other files
+- Full Java stack plus about 30 preceding log lines
+- Duplicate grouping by fingerprint
+- Extracted business ids when they appear: order, product, user, CronJob, catalog version, `.impex`
+- Click a business-id chip to see every issue in this session that mentions that id
+- Classifiers: OCC, CronJob, ImpEx, FlexibleSearch, Solr, Interceptor, Model save, Other
+- Kind-colored chips and filters (ERROR / WARN, kind, search)
+- Collapse Hybris / framework frames; highlight frames under your package prefix
+- Copy stack, copy Markdown, copy a Teams-ready paste
+- Mute a fingerprint (stays quiet across sessions)
+- Open or replay an older `console-*.log`
+- Optional Windows toast + favicon badge when a new ERROR arrives while Radar is in the background
+- Dark theme (night Hybris boot) and light theme (cool printout paper)
+- Log rotation: a newer `console-YYYYMMDD.log` is picked up without restarting the collector
+
+---
 
 ## Stack
 
 | Piece | Choice |
 |---|---|
-| Collector + API | Java 21 + Spring Boot 3 |
-| Ingest | Tail `hybris\log\tomcat\console-*.log` |
-| Store | SQLite (WARN/ERROR only) |
-| Live updates | Server-Sent Events |
-| UI | Angular 22 + Tailwind CSS |
-| Parser | Pure Java module, fixture-tested |
+| JDK | 21 |
+| Parser | `parser` module, JUnit 5, no Spring |
+| Collector | Spring Boot 3.5, JDBC + SQLite (WAL), SSE |
+| UI | Angular 22, standalone components, signals, Tailwind CSS v4 |
+| Ports | collector `8088` · UI `4500` (`npm start`) or `4200` (`ng serve`) |
 
-## Prerequisites
+---
 
-- JDK 21 on `PATH` (or `JAVA_HOME`)
-- Maven 3.9+
-- Node 20+ (24 is fine)
-- A local Hybris install, **or** use the bundled `sample-logs/` demo
+## Run
 
-Set these before a live session:
+### Prerequisites
 
-| Setting | Example |
-|---|---|
-| Hybris home | `D:\hybris` |
-| Custom package prefix | `com.yourcompany` |
-| Collector | `http://localhost:8088` |
-| UI | `http://localhost:4200` |
+- **JDK 21** on `PATH`, or `JAVA_HOME` pointing at it. Hybris machines often have JDK 8 as the default — set 21 before Maven.
+- **Maven 3.9+**
+- **Node 20+** (24 is fine)
+- A local Hybris install **only if** you want live logs. Otherwise use DEMO.
 
-After a clone, copy the example properties and set your machine values (the copy is gitignored):
+### 1. Clone
+
+```bat
+git clone https://github.com/marwan-mohamed12/Commerce-Error-Radar.git
+cd Commerce-Error-Radar
+```
+
+### 2. Create your local config
 
 ```bat
 copy collector\src\main\resources\application.properties.example collector\src\main\resources\application.properties
 ```
 
-Edit `radar.hybris-home` and `radar.custom-package-prefix` in that file. Leave `radar.hybris-home` empty only when you want the bundled `sample-logs` demo.
+This copy is gitignored. Edit it, not the example. Then pick **one** of the two modes below.
 
-Or set the same values in the environment:
+### 3a. DEMO — no Hybris
+
+Leave this line empty in `application.properties`:
+
+```properties
+radar.hybris-home=
+```
+
+The collector replays `sample-logs/console-20260809.log` so the inbox fills on its own. Skip step 3b.
+
+### 3b. LIVE — tail your Hybris console
+
+Set at least these two lines in `application.properties`:
+
+```properties
+radar.hybris-home=D:/hybris
+radar.custom-package-prefix=com.yourcompany
+```
+
+| Key | What to put |
+|---|---|
+| `radar.hybris-home` | The Hybris home folder — the one that contains `hybris\log\tomcat` (or `log\tomcat`) |
+| `radar.custom-package-prefix` | The Java package of **your** custom code (bin/custom), not `de.hybris` |
+
+Use **forward slashes** (`D:/hybris`). A backslash in this file is an escape and will break the path.
+
+You can set the same values in the environment instead of the file:
 
 ```bat
 set HYBRIS_HOME=D:/hybris
 set RADAR_PREFIX=com.yourcompany
 ```
 
-## Run
-
-**One-click (two extra terminals):** `start.bat`
-
-Or three terminals:
+Start Hybris yourself, the way you already do:
 
 ```bat
 cd /d D:\hybris\hybris\bin\platform
 hybrisserver.bat
 ```
 
+Radar does not start or stop that process. It only tails the log.
+
+If `radar.hybris-home` is set, sample logs are never used. Radar waits for `console-*.log`.
+
+### 4. Start Radar
+
+You need **two processes**: the collector (API + tailer) and the Angular UI.
+
+**Easiest** — `start.bat` opens both in extra terminals:
+
+```bat
+start.bat
+```
+
+Then open **http://localhost:4500**. (`start.bat` may also try `4200`; if that tab is empty, use `4500`.)
+
+**Or start them yourself** in two terminals.
+
+Terminal 1 — collector:
+
+```bat
+mvn -pl collector -am spring-boot:run
+```
+
+Always use `-pl collector -am`. The parent POM skips `spring-boot:run`.
+
+Terminal 2 — UI:
+
+```bat
+cd web
+npm install
+npm start
+```
+
+Then open **http://localhost:4500**.
+
+| How you started the UI | URL |
+|---|---|
+| `npm start` or `start.bat` | http://localhost:4500 |
+| `ng serve` (angular.json default) | http://localhost:4200 |
+
+The UI proxies `/api` to the collector on **8088**. If the inbox says the collector is unreachable, start the collector first.
+
+### If something does not start
+
+| Symptom | Fix |
+|---|---|
+| Maven uses Java 8 | Set `JAVA_HOME` to JDK 21, then run Maven again |
+| Inbox is empty in LIVE | Check `radar.hybris-home` points at the folder that contains `hybris\log\tomcat`, and that `console-*.log` exists |
+| You wanted DEMO but see no sample issues | `radar.hybris-home` must be **empty**. An empty CLI flag `--radar.hybris-home=` also forces DEMO; omit the flag if you want the file value |
+| Browser opened `4200` and it is blank | Use http://localhost:4500 |
+| `spring-boot:run` does nothing | You ran it from the parent POM. Use `mvn -pl collector -am spring-boot:run` |
+
+---
+
+## Using the UI
+
+| Action | Where |
+|---|---|
+| Filter ERROR / WARN | Level buttons under the header |
+| Filter by kind | OCC, CronJob, ImpEx, … chips |
+| Search class or message | Header search |
+| Filter by a business id | Click a chip on the issue (order, product, user, CronJob, ImpEx, catalog). Click again or the header pill × to clear |
+| Collapse the issue list | The minimize control on the list (`[` / `]` also toggle the rail) |
+| Copy stack / Markdown / Teams | Icon buttons on the detail header |
+| Mute this fingerprint | Speaker icon. Muted issues stay quiet, including notifications |
+| Replay an old log | Folder icon → path + “Replay whole file” |
+| Other sessions | Clock icon (History) |
+| ERROR notifications | Bell icon. Off by default. See [Notifications](#notifications) |
+| Dark / light | Theme icon. Stored in `localStorage` as `radar-theme` |
+
+The list is one session at a time. Live SSE still runs while you browse History.
+
+---
+
+## How ingest works
+
+1. Resolve the newest `console-*.log` under `<hybris-home>\hybris\log\tomcat` (or `\log\tomcat`).
+2. **Live:** start at EOF. **Demo / replay / newly rotated file:** start at the beginning.
+3. Poll file length about every 500 ms. Never slurp the whole file.
+4. Keep a ring buffer of recent lines (~100). When an ERROR / WARN closes, attach ~30 lines of preceding context.
+5. Persist **only** WARN / ERROR / FATAL. INFO and DEBUG stay in the ring buffer.
+6. On a newer `console-YYYYMMDD.log`, switch without restarting the collector. That file is a **new session**.
+
+### Parser
+
+Hybris 2211 console lines often have Tanuki wrapper columns (`INFO | jvm 1 | main | ts |`). Those are stripped before parsing.
+
+| Input | Behavior |
+|---|---|
+| Header with `ERROR` / `WARN` / `FATAL` | Start an event |
+| Following `at `, `Caused by:`, `Suppressed:`, `... N more`, exception-type lines | Belong to that event |
+| Next normal log header | Close the event, persist, fingerprint |
+| `INFO` / `DEBUG` | Ring buffer only |
+
+**Fingerprint** = exception name + first stack frame under `radar.custom-package-prefix`.
+
+If there is no custom frame, the first non-framework frame is used. Frames under `de.hybris.*`, Spring, Tomcat, and `java.*` are never the key. A Hybris-only stack fingerprints as `ExceptionName@hybris`.
+
+**Ignore list** matches **only the event’s own text** (raw + message + logger), never the preceding context. That way a Solr ping in the context cannot hide a later real error.
+
+Patterns live in your local `application.properties` (`radar.ignore-patterns`, comma-separated). The example file ships Solr ping, session replication, HAC login, and `actuator/health`.
+
+---
+
+## Notifications
+
+Optional. Off by default.
+
+1. Click the **bell** in the header. Allow browser notifications if asked. You should see a “Notifications on” toast.
+2. Leave Radar unfocused (another window, another tab, or the Hybris console).
+3. The next **ERROR** / **FATAL** (not muted, not WARN) toasts on Windows and badges the tab.
+
+The collector decides what is notifiable and fires the Windows Action Center toast. The UI reports whether the window is unfocused and draws the favicon / title badge. Turning the bell off persists in SQLite (`settings.notify.enabled`).
+
+`radar.notify-on-error=true` only sets the default the first time. After you toggle the bell, the stored setting wins.
+
+---
+
+## Configuration
+
+Copy the example, then edit the **copy**:
+
+```bat
+copy collector\src\main\resources\application.properties.example collector\src\main\resources\application.properties
+```
+
+| Key | Meaning | Example |
+|---|---|---|
+| `radar.hybris-home` | Hybris home (folder that contains `hybris/log/tomcat` or `log/tomcat`). Empty → DEMO | `D:/hybris` |
+| `radar.custom-package-prefix` | First stack frame with this prefix becomes the fingerprint | `com.yourcompany` |
+| `radar.tail-from-end` | `true` = live from EOF. `false` = replay the current file | `true` |
+| `radar.notify-on-error` | Default for the header bell (UI override is stored in SQLite) | `false` |
+| `radar.ignore-patterns` | Comma-separated substrings dropped on ingest | `Solr ping,session replication` |
+| `radar.sqlite-path` | SQLite file. Default is under the user folder, not the repo | `${user.home}/.commerce-error-radar/radar.db` |
+| `server.port` | Collector HTTP | `8088` |
+
+CLI flags (only when you need to override the file):
+
 ```bat
 mvn -pl collector -am spring-boot:run "-Dspring-boot.run.arguments=--radar.hybris-home=D:/hybris --radar.custom-package-prefix=com.yourcompany"
 ```
 
-Do not pass `--radar.hybris-home=` when the variable is empty — an empty CLI flag overrides `application.properties` and forces DEMO.
+- `--radar.tail-from-end=false` replays the current file from the start.
+- `--radar.notify-on-error=true` defaults the bell on (the UI still persists the toggle).
 
-```bat
-cd web
-npm start
+PowerShell: quote the `-D` flags. Do not use `&&` if the shell rejects it — use `;`.
+
+---
+
+## Sessions and storage
+
+- **One console file = one session.** Reopening the same path resumes that run.
+- A new day’s file, or a restart that rotates the log, starts a new session.
+- `issues` are keyed by fingerprint (counts and mute are global). `events` belong to a `run_id`. The list is filtered to the session you are viewing.
+- Switching back to LIVE after a DEMO replay drops leftover DEMO rows so sample issues do not stick on the live list.
+
+SQLite schema is created on startup. WAL mode, busy timeout, foreign keys.
+
+---
+
+## Project layout
+
+```text
+Commerce-Error-Radar/
+  README.md                 this file
+  pom.xml                   Maven parent (Java 21). spring-boot:run is skipped here
+  parser/                   domain: parse, fingerprint, classify, extract (no Spring)
+  collector/                Spring Boot: tailer, SQLite, REST, SSE, Windows toast
+  web/                      Angular 22 dashboard
+  sample-logs/              demo console chunk for DEMO mode
+  docs/screenshots/         UI captures (add your PNGs here)
+  start.bat                 collector + UI in two terminals
+  start-collector.bat
+  start-ui.bat
 ```
 
-Open [http://localhost:4200](http://localhost:4200).
+The parser has **no** Spring dependency. New parse / fingerprint / classifier logic goes in `parser` with a fixture test.
 
-The collector includes **Spring Boot DevTools**. After a Java change, recompile onto the classpath and the app restarts in a couple of seconds (same SQLite session is resumed). In IntelliJ / VS Code, turn on compile-on-save / automatic build. From another terminal:
+---
 
-```bat
-mvn -pl collector -am compile
-```
+## API
 
-DevTools is `optional` and is stripped from the packaged jar. It is not true JVM hot-swap — it is a fast process restart.
+The UI uses these. Useful if you want to curl the collector directly.
 
-If `radar.hybris-home` (and `HYBRIS_HOME`) are empty, the collector replays `sample-logs/console-20260809.log` so you can try the UI immediately. If the property is set, sample logs are never used.
+| Method | Path | Purpose |
+|---|---|---|
+| `GET` | `/api/runs` | Sessions (one per console file) |
+| `GET` | `/api/runs/current` | Tail status |
+| `POST` | `/api/runs/open` | Open a log (`path`, `replay`) |
+| `GET` | `/api/issues` | Issues for a session (`runId`, `level`, `kind`, `q`, `bizKey`, `bizValue`, `includeMuted`) |
+| `GET` | `/api/issues/one?fingerprint=` | Issue + events (query param — fingerprints contain `@`) |
+| `POST` | `/api/issues/mute?fingerprint=` | Mute / unmute |
+| `GET` | `/api/events` | Flat search |
+| `GET` | `/api/stream` | SSE (`hello`, `issue`, `status`, `notify`) |
+| `GET` / `POST` | `/api/notify` | Bell setting |
+| `POST` | `/api/notify/presence` | Tab unfocused / hidden |
 
-### Tests
+---
+
+## Contributing
+
+PRs are welcome. Keep the change small, local, and covered by a test when behavior changes.
+
+### Where the code goes
+
+| Change | Put it here |
+|---|---|
+| Parse a new log shape, fingerprint, classifier, or business id | `parser/` + a fixture under `parser/src/test/resources/fixtures/` |
+| Tailer, SQLite, REST, SSE, Windows toast | `collector/` |
+| Inbox UI | `web/src/app/` (`core/` or `features/<name>/`). Standalone components and signals. No NgModules |
+
+The parser has **no** Spring dependency. Do not add Spring annotations there.
+
+### Workflow
+
+1. Fork and branch from `main`.
+2. Do not commit `collector/src/main/resources/application.properties` — that file is local. Commit the example file only.
+3. Do not put machine paths or personal package prefixes in docs or examples. Use `D:/hybris` and `com.yourcompany`.
+4. Run the checks that match what you touched:
 
 ```bat
 mvn test
 ```
-
-### Build UI
 
 ```bat
 cd web
 npm run build
 ```
 
-## What you get
+5. Open a pull request. Say what you changed and how you checked it.
 
-- Live ERROR / WARN for the current log-file session (one `console-*.log` = one session; History lists other files)
-- Tail from EOF, never load a multi-GB file
-- Full Java stack + ~30 lines of preceding context
-- Duplicates grouped (one issue, count 47)
-- Fingerprint on *your* code, not `de.hybris.*`
-- Order / product / user / cronjob / catalog version / `.impex` extracted when present — click a chip to see everything for that order or ImpEx file
-- Copy the selected issue as Markdown or a Teams-ready paste
-- Classifiers: CronJob, ImpEx, OCC, FlexibleSearch, Solr, Interceptor, Model save
-- Ignore list in `collector/src/main/resources/application.properties` (Solr ping, session replication, HAC, actuator)
-- Mute a fingerprint, copy stack, open an old `console-*.log` and replay it
-- Optional Windows toast + tab favicon badge when a new ERROR arrives while this tab is in the background (bell in the header; collector fires the toast, UI draws the badge)
-- Log rotation: a newer `console-YYYYMMDD.log` is picked up without restarting the collector
+### Local loop
 
-## Layout
+Collector DevTools (optional) restarts the process when `target/classes` changes. LiveReload is off — the Angular UI already hot-reloads. The same SQLite session is resumed.
 
-```text
-Commerce-Error-Radar/
-  README.md                 how a human runs the app
-  pom.xml                   Maven parent (Java 21)
-  parser/                   domain: parse / fingerprint / classify (no Spring)
-  collector/                Spring Boot adapters: web, SQLite, tailer
-  web/                      Angular 22 dashboard
-  sample-logs/              demo console chunk
-  start.bat / start-collector.bat / start-ui.bat
+```bat
+mvn -pl collector -am compile
 ```
 
-`collector/src/main/resources/application.properties` is local (gitignored). Start from `application.properties.example`.
+### Conventions
 
-## Parser rules
-
-| Input | Behavior |
-|---|---|
-| Line with ` ERROR ` / ` WARN ` | Start event |
-| Next lines `at ` / `Caused by:` / `... N more` | Append to event |
-| Next normal log line | Close event, persist, fingerprint |
-| INFO / DEBUG | Ring buffer only |
-| Fingerprint | `ExceptionName` + first `com.yourcompany...` frame |
-| Persist | WARN/ERROR + ~30 context lines only |
-
-## Configure
-
-Copy `collector/src/main/resources/application.properties.example` to `application.properties` and set:
-
-```properties
-radar.hybris-home=D:/hybris
-radar.custom-package-prefix=com.yourcompany
-radar.tail-from-end=true
-radar.notify-on-error=false
-radar.ignore-patterns=Solr ping,session replication
-```
-
-Use forward slashes in `application.properties`. Flags:
-
-- `--radar.hybris-home=D:/hybris` (omit this flag entirely if you want the file value)
-- `--radar.custom-package-prefix=com.yourcompany`
-- `--radar.tail-from-end=false` to replay the current file from the start
-- `--radar.notify-on-error=true` to default the header bell on (the UI still persists the toggle). Click the bell once, then leave Radar unfocused — a new ERROR toasts on Windows and badges the tab. WARN stays inbox-only.
-
-## Out of scope
-
-- SAP Commerce Cloud / CCv2
-- OpenSearch / Kibana / Dynatrace
-- Custom Log4j HTTP appender inside Hybris
-- Wrapping `hybrisserver.bat` as a child process
-- Storing every INFO line
+- Java 21, constructor injection, `application.properties` + `@ConfigurationProperties`.
+- Do not expose JDBC rows from the API; use the DTOs in `adapter.web.dto`.
+- Angular: `@if` / `@for`, no NgModules.
+- Keep the dark “night Hybris boot” and light “printout paper” look. Do not restyle as generic SaaS or an acid-green terminal.

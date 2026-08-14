@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-label="Screenshot placeholder: stack detail">
+  <rect width="1600" height="900" fill="#080808"/>
+  <rect x="48" y="48" width="1504" height="804" fill="none" stroke="#2a2a2a" stroke-width="2" stroke-dasharray="14 10" rx="16"/>
+  <text x="800" y="410" text-anchor="middle" fill="#c9a36a" font-family="Georgia, serif" font-size="36">Screenshot</text>
+  <text x="800" y="462" text-anchor="middle" fill="#eee8dc" font-family="Segoe UI, sans-serif" font-size="22">Issue detail · stack</text>
+  <text x="800" y="510" text-anchor="middle" fill="#9a9488" font-family="Consolas, monospace" font-size="16">docs/screenshots/issue-stack.png</text>
+  <text x="800" y="548" text-anchor="middle" fill="#5c574f" font-family="Segoe UI, sans-serif" font-size="14">Custom frames highlighted, Hybris frames folded</text>
+</svg>
