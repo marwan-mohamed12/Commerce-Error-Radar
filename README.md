@@ -2,9 +2,6 @@
 
 Local error inbox for **SAP Commerce (Hybris) + Spring** on Windows.
 
-**Repo to edit:** `F:\grok\Commerce-Error-Radar` (this checkout).  
-**Do not use git/grok worktrees.** Agents and humans make every change directly here. Full project context and agent rules: [`AGENTS.md`](AGENTS.md).
-
 You start `hybrisserver` as usual. This app tails today’s Tomcat console log, keeps `ERROR` / `WARN` events, groups duplicates, and shows them in a browser UI that does not scroll away.
 
 **Scope: local only.** No SAP Commerce Cloud, no OpenSearch, no Dynatrace, no custom Hybris extension.
@@ -46,12 +43,20 @@ Set these before a live session:
 | Collector | `http://localhost:8088` |
 | UI | `http://localhost:4200` |
 
+After a clone, copy the example properties and set your machine values (the copy is gitignored):
+
 ```bat
-set HYBRIS_HOME=D:/dccp-digitalcommerce-customerportal/core-customize/hybris
-set RADAR_PREFIX=com.marwan.radar
+copy collector\src\main\resources\application.properties.example collector\src\main\resources\application.properties
 ```
 
-Or put the same values in `collector/src/main/resources/application.properties` (`radar.hybris-home`, `radar.custom-package-prefix`). Leave `radar.hybris-home` empty only when you want the bundled `sample-logs` demo.
+Edit `radar.hybris-home` and `radar.custom-package-prefix` in that file. Leave `radar.hybris-home` empty only when you want the bundled `sample-logs` demo.
+
+Or set the same values in the environment:
+
+```bat
+set HYBRIS_HOME=D:/hybris
+set RADAR_PREFIX=com.yourcompany
+```
 
 ## Run
 
@@ -65,7 +70,7 @@ hybrisserver.bat
 ```
 
 ```bat
-mvn -pl collector -am spring-boot:run "-Dspring-boot.run.arguments=--radar.hybris-home=D:/dccp-digitalcommerce-customerportal/core-customize/hybris --radar.custom-package-prefix=com.marwan.radar"
+mvn -pl collector -am spring-boot:run "-Dspring-boot.run.arguments=--radar.hybris-home=D:/hybris --radar.custom-package-prefix=com.yourcompany"
 ```
 
 Do not pass `--radar.hybris-home=` when the variable is empty — an empty CLI flag overrides `application.properties` and forces DEMO.
@@ -76,6 +81,14 @@ npm start
 ```
 
 Open [http://localhost:4200](http://localhost:4200).
+
+The collector includes **Spring Boot DevTools**. After a Java change, recompile onto the classpath and the app restarts in a couple of seconds (same SQLite session is resumed). In IntelliJ / VS Code, turn on compile-on-save / automatic build. From another terminal:
+
+```bat
+mvn -pl collector -am compile
+```
+
+DevTools is `optional` and is stripped from the packaged jar. It is not true JVM hot-swap — it is a fast process restart.
 
 If `radar.hybris-home` (and `HYBRIS_HOME`) are empty, the collector replays `sample-logs/console-20260809.log` so you can try the UI immediately. If the property is set, sample logs are never used.
 
@@ -108,18 +121,17 @@ npm run build
 ## Layout
 
 ```text
-F:\grok\Commerce-Error-Radar\
-  AGENTS.md     project context + agent rules (always edit this repo, never a worktree)
-  parser/       plain Java + JUnit fixtures
-  collector/    Spring Boot 3 API + tailer + SQLite
-  web/          Angular 22 dashboard
-  sample-logs/  demo console chunk
-  Plan/plan.md  original implementation plan
+Commerce-Error-Radar/
+  README.md                 how a human runs the app
+  pom.xml                   Maven parent (Java 21)
+  parser/                   plain Java + JUnit fixtures
+  collector/                Spring Boot 3 API + tailer + SQLite
+  web/                      Angular 22 dashboard
+  sample-logs/              demo console chunk
+  start.bat / start-collector.bat / start-ui.bat
 ```
 
-## For agents
-
-Read `AGENTS.md` before changing code. Work only in this directory. Never create or use a worktree for Commerce Error Radar.
+`collector/src/main/resources/application.properties` is local (gitignored). Start from `application.properties.example`.
 
 ## Parser rules
 
@@ -134,11 +146,11 @@ Read `AGENTS.md` before changing code. Work only in this directory. Never create
 
 ## Configure
 
-`collector/src/main/resources/application.properties`
+Copy `collector/src/main/resources/application.properties.example` to `application.properties` and set:
 
 ```properties
-radar.hybris-home=D:/dccp-digitalcommerce-customerportal/core-customize/hybris
-radar.custom-package-prefix=com.marwan.radar
+radar.hybris-home=D:/hybris
+radar.custom-package-prefix=com.yourcompany
 radar.tail-from-end=true
 radar.ignore-patterns=Solr ping,session replication
 ```
@@ -146,7 +158,7 @@ radar.ignore-patterns=Solr ping,session replication
 Use forward slashes in `application.properties`. Flags:
 
 - `--radar.hybris-home=D:/hybris` (omit this flag entirely if you want the file value)
-- `--radar.custom-package-prefix=com.marwan.radar`
+- `--radar.custom-package-prefix=com.yourcompany`
 - `--radar.tail-from-end=false` to replay the current file from the start
 
 ## Out of scope

@@ -1,9 +1,16 @@
+# Copy this file, then edit the copy. Spring Boot loads application.properties,
+# not this example. The copy is gitignored so machine paths stay off the remote.
+#
+#   copy collector\src\main\resources\application.properties.example collector\src\main\resources\application.properties
+#
+# start.bat / start-collector.bat will copy it for you if the file is missing.
+
 # Collector HTTP
 server.port=8088
 
 spring.application.name=commerce-error-radar
 
-# SQLite file on THIS machine (your user folder — not F:\grok\...)
+# SQLite file on THIS machine (your user folder — not the repo).
 # Windows example: C:\Users\<you>\.commerce-error-radar\radar.db
 radar.sqlite-path=${user.home}/.commerce-error-radar/radar.db
 spring.datasource.url=jdbc:sqlite:${radar.sqlite-path}
@@ -15,10 +22,13 @@ spring.sql.init.mode=never
 # LIVE when this is set. Leave empty to replay sample-logs (DEMO only).
 # Use forward slashes on Windows — a backslash in this file is an escape.
 # Env HYBRIS_HOME is used only when this value is blank.
-radar.hybris-home=D:/dccp-digitalcommerce-customerportal/core-customize/hybris
+#
+# Example: D:/hybris
+radar.hybris-home=
 
-# First stack frame with this prefix becomes the fingerprint (bin/custom, not de.hybris)
-radar.custom-package-prefix=com.marwan.radar
+# First stack frame with this prefix becomes the fingerprint (bin/custom, not de.hybris).
+# Example: com.yourcompany
+radar.custom-package-prefix=com.yourcompany
 
 radar.tail-from-end=true
 radar.poll-interval-ms=500
@@ -29,6 +39,12 @@ radar.ring-buffer-size=100
 radar.sample-logs-dir=${user.dir}/../sample-logs
 
 radar.ignore-patterns=Solr ping,session replication,HAC login,actuator/health
+
+# DevTools: restart when target/classes changes (IDE compile-on-save or mvn compile).
+# LiveReload is off — the Angular UI already hot-reloads on :4200.
+spring.devtools.restart.enabled=true
+spring.devtools.livereload.enabled=false
+spring.devtools.restart.additional-exclude=**/*.db,data/**
 
 logging.pattern.console=%d{HH:mm:ss.SSS} %-5level [%logger{20}] %msg%n
 logging.level.com.commerce.radar=INFO
