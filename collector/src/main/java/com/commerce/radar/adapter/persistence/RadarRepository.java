@@ -251,6 +251,26 @@ public class RadarRepository {
         jdbc.update("UPDATE issues SET muted = ? WHERE fingerprint = ?", muted ? 1 : 0, fingerprint);
     }
 
+    public Optional<String> findSetting(String key) {
+        List<String> rows = jdbc.query(
+                "SELECT value FROM settings WHERE key = ?",
+                (rs, rowNum) -> rs.getString(1),
+                key
+        );
+        return rows.stream().findFirst();
+    }
+
+    public void putSetting(String key, String value) {
+        jdbc.update(
+                """
+                INSERT INTO settings (key, value) VALUES (?, ?)
+                ON CONFLICT(key) DO UPDATE SET value = excluded.value
+                """,
+                key,
+                value
+        );
+    }
+
     public List<StoredIssue> listIssues(
             Long runId,
             String level,

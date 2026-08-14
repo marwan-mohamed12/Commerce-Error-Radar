@@ -42,6 +42,10 @@ public class LiveEventHub {
         broadcast("issue", payload);
     }
 
+    public void publishNotify(ErrorNotification notification) {
+        broadcast("notify", notification);
+    }
+
     public void publishStatus(Object status) {
         broadcast("status", status);
     }

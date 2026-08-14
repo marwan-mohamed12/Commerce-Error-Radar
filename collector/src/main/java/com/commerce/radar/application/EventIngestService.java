@@ -24,17 +24,20 @@ public class EventIngestService {
     private final RadarRepository repository;
     private final NoiseFilter noiseFilter;
     private final LiveEventHub hub;
+    private final ErrorNotifyService notify;
     private final RadarProperties properties;
 
     public EventIngestService(
             RadarRepository repository,
             NoiseFilter noiseFilter,
             LiveEventHub hub,
+            ErrorNotifyService notify,
             RadarProperties properties
     ) {
         this.repository = repository;
         this.noiseFilter = noiseFilter;
         this.hub = hub;
+        this.notify = notify;
         this.properties = properties;
     }
 
@@ -85,6 +88,7 @@ public class EventIngestService {
                 ids
         ));
         hub.publish(issue, stored);
+        notify.onEvent(issue, stored);
         return issue;
     }
 }

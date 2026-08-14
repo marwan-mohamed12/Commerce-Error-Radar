@@ -73,6 +73,12 @@ public class SchemaInitializer {
                     last_business_ids_json TEXT
                 )
                 """);
+        jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS settings (
+                    key TEXT PRIMARY KEY,
+                    value TEXT NOT NULL
+                )
+                """);
         jdbc.execute("CREATE INDEX IF NOT EXISTS idx_events_fingerprint ON events(fingerprint)");
         jdbc.execute("CREATE INDEX IF NOT EXISTS idx_events_ts ON events(ts)");
         jdbc.execute("CREATE INDEX IF NOT EXISTS idx_events_level ON events(level)");

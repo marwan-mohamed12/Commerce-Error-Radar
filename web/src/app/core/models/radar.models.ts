@@ -61,6 +61,21 @@ export interface Filters {
   bizValue: string;
 }
 
+export interface NotifySettings {
+  enabled: boolean;
+  tabHidden: boolean;
+  windowsToast: boolean;
+}
+
+export interface NotifyPing {
+  fingerprint: string;
+  level: string;
+  kind: string;
+  title: string;
+  message: string;
+  count: number;
+}
+
 export interface RunSession {
   id: number;
   hybrisHome: string;

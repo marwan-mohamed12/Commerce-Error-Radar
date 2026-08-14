@@ -1,5 +1,6 @@
 import { Component, OnDestroy, inject, output, signal } from '@angular/core';
 import { ISSUE_KINDS } from '../../../../core/models/radar.models';
+import { NotifyService } from '../../../../core/services/notify.service';
 import { RadarService } from '../../../../core/services/radar.service';
 import { ThemeService } from '../../../../core/services/theme.service';
 import { bizTone } from '../../../../core/utils/biz';
@@ -14,6 +15,7 @@ import { fileName, sessionStamp } from '../../../../core/utils/time';
 export class InboxChrome implements OnDestroy {
   readonly radar = inject(RadarService);
   readonly theme = inject(ThemeService);
+  readonly notify = inject(NotifyService);
   readonly kinds = ISSUE_KINDS;
   readonly search = signal('');
   readonly openPath = signal('');
