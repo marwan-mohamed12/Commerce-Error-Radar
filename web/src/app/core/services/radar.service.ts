@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, computed, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { Filters, Issue, IssueDetail, RunSession, RunStatus } from './models';
+import { Filters, Issue, IssueDetail, RunSession, RunStatus } from '../models/radar.models';
 
 @Injectable({ providedIn: 'root' })
 export class RadarService {
