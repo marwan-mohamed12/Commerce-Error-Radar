@@ -1,5 +1,6 @@
 package com.commerce.radar.parser;
 
+import com.commerce.radar.parser.model.IssueKind;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;

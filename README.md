@@ -112,7 +112,8 @@ npm run build
 - Full Java stack + ~30 lines of preceding context
 - Duplicates grouped (one issue, count 47)
 - Fingerprint on *your* code, not `de.hybris.*`
-- Order / product / user / cronjob / catalog version extracted when present
+- Order / product / user / cronjob / catalog version / `.impex` extracted when present — click a chip to see everything for that order or ImpEx file
+- Copy the selected issue as Markdown or a Teams-ready paste
 - Classifiers: CronJob, ImpEx, OCC, FlexibleSearch, Solr, Interceptor, Model save
 - Ignore list in `collector/src/main/resources/application.properties` (Solr ping, session replication, HAC, actuator)
 - Mute a fingerprint, copy stack, open an old `console-*.log` and replay it
@@ -124,8 +125,8 @@ npm run build
 Commerce-Error-Radar/
   README.md                 how a human runs the app
   pom.xml                   Maven parent (Java 21)
-  parser/                   plain Java + JUnit fixtures
-  collector/                Spring Boot 3 API + tailer + SQLite
+  parser/                   domain: parse / fingerprint / classify (no Spring)
+  collector/                Spring Boot adapters: web, SQLite, tailer
   web/                      Angular 22 dashboard
   sample-logs/              demo console chunk
   start.bat / start-collector.bat / start-ui.bat

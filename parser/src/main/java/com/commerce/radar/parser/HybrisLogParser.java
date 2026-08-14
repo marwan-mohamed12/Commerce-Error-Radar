@@ -1,5 +1,9 @@
 package com.commerce.radar.parser;
 
+import com.commerce.radar.parser.model.IssueKind;
+import com.commerce.radar.parser.model.LogLine;
+import com.commerce.radar.parser.model.ParsedEvent;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

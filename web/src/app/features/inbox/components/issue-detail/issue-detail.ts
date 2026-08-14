@@ -1,6 +1,8 @@
 import { Component, computed, effect, input, output, signal } from '@angular/core';
 import { IssueDetail } from '../../../../core/models/radar.models';
+import { BusinessFilter, bizEntries, bizFilterTitle, bizLabel, bizTone } from '../../../../core/utils/biz';
 import { displayTitle, kindKey, kindLabel as labelForKind } from '../../../../core/utils/kind';
+import { copyHtml, issueMarkdown, issueTeams } from '../../../../core/utils/share';
 import { StackBlock, collapseFramework, parseStack, shortPackage } from '../../../../core/utils/stack';
 import { clockTime, relativeTime } from '../../../../core/utils/time';
 
@@ -16,8 +18,11 @@ export class IssueDetailView {
   readonly wide = input(false);
   readonly mute = output<{ fingerprint: string; muted: boolean }>();
   readonly back = output<void>();
+  readonly biz = output<BusinessFilter>();
+  readonly activeBizKey = input('');
+  readonly activeBizValue = input('');
 
-  readonly copied = signal(false);
+  readonly copied = signal<'stack' | 'md' | 'teams' | null>(null);
   readonly showContext = signal(false);
   readonly openGroups = signal<Record<number, boolean>>({});
 
@@ -65,7 +70,7 @@ export class IssueDetailView {
 
   readonly ids = computed(() => {
     const map = this.event()?.businessIds ?? this.detail()?.issue.lastBusinessIds ?? {};
-    return Object.entries(map);
+    return bizEntries(map);
   });
 
   rel(iso: string): string {
@@ -112,14 +117,65 @@ export class IssueDetailView {
     this.openGroups.set({});
   }
 
+  idLabel(key: string): string {
+    return bizLabel(key);
+  }
+
+  idTone(key: string): string {
+    return bizTone(key);
+  }
+
+  idTitle(key: string, value: string): string {
+    return bizFilterTitle(key, value);
+  }
+
+  isActiveId(key: string, value: string): boolean {
+    return this.activeBizKey() === key && this.activeBizValue() === value;
+  }
+
+  pickId(key: string, value: string): void {
+    this.biz.emit({ key, value });
+  }
+
   async copyStack(): Promise<void> {
     const text = this.event()?.rawText;
     if (!text) {
       return;
     }
+    await this.copyText(text, 'stack');
+  }
+
+  async copyMarkdown(): Promise<void> {
+    const detail = this.detail();
+    if (!detail) {
+      return;
+    }
+    await this.copyText(issueMarkdown(detail), 'md');
+  }
+
+  async copyTeams(): Promise<void> {
+    const detail = this.detail();
+    if (!detail) {
+      return;
+    }
+    const payload = issueTeams(detail);
+    await copyHtml(payload.html, payload.plain);
+    this.copied.set('teams');
+    setTimeout(() => {
+      if (this.copied() === 'teams') {
+        this.copied.set(null);
+      }
+    }, 1600);
+  }
+
+  private async copyText(text: string, kind: 'stack' | 'md' | 'teams'): Promise<void> {
     await navigator.clipboard.writeText(text);
-    this.copied.set(true);
-    setTimeout(() => this.copied.set(false), 1600);
+    this.copied.set(kind);
+    setTimeout(() => {
+      if (this.copied() === kind) {
+        this.copied.set(null);
+      }
+    }, 1600);
   }
 
   toggleMute(): void {
