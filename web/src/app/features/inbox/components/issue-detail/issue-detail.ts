@@ -1,8 +1,8 @@
 import { Component, computed, effect, input, output, signal } from '@angular/core';
-import { IssueDetail } from './models';
-import { displayTitle, kindKey, kindLabel as labelForKind } from './kind';
-import { StackBlock, collapseFramework, parseStack, shortPackage } from './stack';
-import { clockTime, relativeTime } from './time';
+import { IssueDetail } from '../../../../core/models/radar.models';
+import { displayTitle, kindKey, kindLabel as labelForKind } from '../../../../core/utils/kind';
+import { StackBlock, collapseFramework, parseStack, shortPackage } from '../../../../core/utils/stack';
+import { clockTime, relativeTime } from '../../../../core/utils/time';
 
 @Component({
   selector: 'app-issue-detail',

@@ -1,0 +1,62 @@
+<div class="flex h-full min-h-0 min-w-0 flex-col overflow-hidden">
+  <a class="skip-link" href="#radar-main">Skip to issues</a>
+  <app-inbox-chrome (sessionChanged)="onSessionChanged()" />
+
+  <main
+    id="radar-main"
+    class="grid min-h-0 min-w-0 flex-1 overflow-hidden"
+    [class.lg:grid-cols-[minmax(20rem,28rem)_minmax(0,1fr)]]="railOpen()"
+    [class.lg:grid-cols-[3rem_minmax(0,1fr)]]="!railOpen()"
+  >
+    <section
+      class="flex min-h-0 min-w-0 flex-col overflow-hidden border-rule bg-canvas-2 lg:border-r"
+      [class.max-lg:hidden]="pane() === 'detail'"
+      aria-label="Issues"
+    >
+      <div class="min-h-0 min-w-0 flex-1 overflow-y-auto" [class.lg:hidden]="!railOpen()">
+        <app-issue-list
+          [issues]="radar.issues()"
+          [selected]="radar.selectedFingerprint()"
+          [flash]="radar.flashFingerprint()"
+          [canCollapse]="true"
+          [viewingHistory]="radar.viewingHistory()"
+          (collapse)="setRail(false)"
+          (pick)="pickIssue($event)"
+        />
+      </div>
+      <div
+        class="hidden w-full shrink-0 flex-col items-center pt-2"
+        [class.lg:flex]="!railOpen()"
+      >
+        <button
+          type="button"
+          class="icon-btn"
+          aria-label="Maximize list"
+          title="Maximize list"
+          (click)="setRail(true)"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect width="18" height="18" x="3" y="3" rx="2"></rect>
+            <path d="M9 3v18"></path>
+            <path d="m14 9 3 3-3 3"></path>
+          </svg>
+        </button>
+      </div>
+    </section>
+    <section
+      class="min-h-0 min-w-0 overflow-y-auto bg-canvas"
+      [class.overflow-x-hidden]="railOpen()"
+      [class.max-lg:hidden]="pane() === 'list'"
+      aria-label="Selected issue"
+    >
+      <app-issue-detail
+        [detail]="radar.detail()"
+        [prefix]="radar.status()?.customPackagePrefix || 'com.yourcompany'"
+        [canGoBack]="true"
+        [wide]="!railOpen()"
+        (mute)="radar.mute($event.fingerprint, $event.muted)"
+        (back)="pane.set('list')"
+      />
+    </section>
+  </main>
+</div>

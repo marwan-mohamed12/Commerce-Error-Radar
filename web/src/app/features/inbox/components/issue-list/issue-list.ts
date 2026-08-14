@@ -1,7 +1,7 @@
 import { Component, computed, input, output } from '@angular/core';
-import { KIND_ORDER, displayTitle, kindKey, kindLabel as labelForKind } from './kind';
-import { Issue } from './models';
-import { clockTime, relativeTime } from './time';
+import { Issue } from '../../../../core/models/radar.models';
+import { KIND_ORDER, displayTitle, kindKey, kindLabel as labelForKind } from '../../../../core/utils/kind';
+import { clockTime, relativeTime } from '../../../../core/utils/time';
 
 export interface IssueGroup {
   kind: string;
