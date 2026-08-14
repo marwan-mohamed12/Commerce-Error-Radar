@@ -1,5 +1,7 @@
 package com.commerce.radar.parser;
 
+import com.commerce.radar.parser.model.IssueKind;
+import com.commerce.radar.parser.model.ParsedEvent;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;

@@ -2,6 +2,7 @@ import { Component, OnDestroy, inject, output, signal } from '@angular/core';
 import { ISSUE_KINDS } from '../../../../core/models/radar.models';
 import { RadarService } from '../../../../core/services/radar.service';
 import { ThemeService } from '../../../../core/services/theme.service';
+import { bizTone } from '../../../../core/utils/biz';
 import { kindLabel } from '../../../../core/utils/kind';
 import { fileName, sessionStamp } from '../../../../core/utils/time';
 
@@ -88,5 +89,9 @@ export class InboxChrome implements OnDestroy {
       return 'All';
     }
     return kindLabel(kind);
+  }
+
+  bizTone(): string {
+    return bizTone(this.radar.filters().bizKey);
   }
 }

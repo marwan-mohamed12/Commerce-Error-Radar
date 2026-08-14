@@ -2,6 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, computed, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { Filters, Issue, IssueDetail, RunSession, RunStatus } from '../models/radar.models';
+import { bizFilterTitle, bizLabel } from '../utils/biz';
 
 @Injectable({ providedIn: 'root' })
 export class RadarService {
@@ -13,6 +14,22 @@ export class RadarService {
     level: 'ALL',
     kind: 'ALL',
     q: '',
+    bizKey: '',
+    bizValue: '',
+  });
+  readonly businessFilterTitle = computed(() => {
+    const f = this.filters();
+    if (!f.bizKey || !f.bizValue) {
+      return '';
+    }
+    return bizFilterTitle(f.bizKey, f.bizValue);
+  });
+  readonly businessFilterChip = computed(() => {
+    const f = this.filters();
+    if (!f.bizKey || !f.bizValue) {
+      return '';
+    }
+    return `${bizLabel(f.bizKey)} ${f.bizValue}`;
   });
   readonly connected = signal(false);
   readonly flashFingerprint = signal<string | null>(null);
@@ -67,6 +84,9 @@ export class RadarService {
     if (f.q.trim()) {
       params = params.set('q', f.q.trim());
     }
+    if (f.bizKey && f.bizValue) {
+      params = params.set('bizKey', f.bizKey).set('bizValue', f.bizValue);
+    }
     const runId = this.activeRunId();
     if (runId > 0) {
       params = params.set('runId', String(runId));
@@ -117,6 +137,24 @@ export class RadarService {
 
   setFilter<K extends keyof Filters>(key: K, value: Filters[K]): void {
     this.filters.update((f) => ({ ...f, [key]: value }));
+    void this.refreshIssues();
+  }
+
+  filterByBusinessId(key: string, value: string): void {
+    const current = this.filters();
+    if (current.bizKey === key && current.bizValue === value) {
+      this.clearBusinessFilter();
+      return;
+    }
+    this.filters.update((f) => ({ ...f, bizKey: key, bizValue: value }));
+    void this.refreshIssues();
+  }
+
+  clearBusinessFilter(): void {
+    if (!this.filters().bizValue) {
+      return;
+    }
+    this.filters.update((f) => ({ ...f, bizKey: '', bizValue: '' }));
     void this.refreshIssues();
   }
 

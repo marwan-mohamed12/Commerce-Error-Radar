@@ -1,5 +1,6 @@
 import { Component, computed, input, output } from '@angular/core';
 import { Issue } from '../../../../core/models/radar.models';
+import { BusinessFilter, bizEntries, bizLabel, bizTone } from '../../../../core/utils/biz';
 import { KIND_ORDER, displayTitle, kindKey, kindLabel as labelForKind } from '../../../../core/utils/kind';
 import { clockTime, relativeTime } from '../../../../core/utils/time';
 
@@ -24,6 +25,8 @@ export class IssueList {
   readonly viewingHistory = input(false);
   readonly pick = output<string>();
   readonly collapse = output<void>();
+  readonly biz = output<BusinessFilter>();
+  readonly bizFilter = input('');
 
   readonly groups = computed<IssueGroup[]>(() => {
     const buckets = new Map<string, Issue[]>();
@@ -79,6 +82,23 @@ export class IssueList {
 
   titleOf(issue: Issue): string {
     return displayTitle(issue.title, issue.kind);
+  }
+
+  idsOf(issue: Issue): [string, string][] {
+    return bizEntries(issue.lastBusinessIds);
+  }
+
+  idLabel(key: string): string {
+    return bizLabel(key);
+  }
+
+  idTone(key: string): string {
+    return bizTone(key);
+  }
+
+  pickBiz(event: Event, key: string, value: string): void {
+    event.stopPropagation();
+    this.biz.emit({ key, value });
   }
 
   onKey(event: KeyboardEvent): void {

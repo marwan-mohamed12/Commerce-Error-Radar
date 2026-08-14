@@ -119,6 +119,20 @@
         </button>
       }
     </div>
+
+    @if (radar.filters().bizValue) {
+      <button
+        type="button"
+        class="kind-chip is-on"
+        [attr.data-kind]="bizTone()"
+        [attr.title]="radar.businessFilterTitle()"
+        (click)="radar.clearBusinessFilter()"
+      >
+        <span class="kind-pip" aria-hidden="true"></span>
+        {{ radar.businessFilterChip() }}
+        <span aria-hidden="true">×</span>
+      </button>
+    }
   </div>
 </header>
 

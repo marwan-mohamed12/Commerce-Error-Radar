@@ -1,5 +1,8 @@
 package com.commerce.radar.parser;
 
+import com.commerce.radar.parser.model.IssueKind;
+import com.commerce.radar.parser.model.LogLine;
+
 import java.util.Locale;
 import java.util.Map;
 

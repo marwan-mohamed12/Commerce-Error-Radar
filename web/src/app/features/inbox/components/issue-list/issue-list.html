@@ -42,10 +42,10 @@
       <ul role="listbox">
         @for (issue of group.issues; track issue.fingerprint) {
           <li>
-            <button
-              type="button"
+            <div
               role="option"
-              class="relative w-full min-w-0 border-l-2 px-3 py-2.5 text-left transition-colors sm:px-4 focus-visible:bg-raised"
+              tabindex="0"
+              class="relative w-full min-w-0 cursor-pointer border-l-2 px-3 py-2.5 text-left transition-colors sm:px-4 focus-visible:bg-raised"
               [class.border-brass]="selected() === issue.fingerprint"
               [class.bg-raised]="selected() === issue.fingerprint"
               [class.border-transparent]="selected() !== issue.fingerprint"
@@ -54,6 +54,8 @@
               [attr.aria-selected]="selected() === issue.fingerprint"
               [attr.data-fp]="issue.fingerprint"
               (click)="pick.emit(issue.fingerprint)"
+              (keydown.enter)="pick.emit(issue.fingerprint)"
+              (keydown.space)="$event.preventDefault(); pick.emit(issue.fingerprint)"
             >
               @if (flash() === issue.fingerprint) {
                 <span
@@ -89,7 +91,23 @@
                 <span class="min-w-0 flex-1 truncate text-mute">{{ issue.lastMessage || kindLabel(issue.kind) }}</span>
                 <span class="shrink-0 tabular-nums text-mute/90">{{ rel(issue.lastSeen) }}</span>
               </span>
-            </button>
+              @if (idsOf(issue).length) {
+                <span class="relative mt-1.5 flex min-w-0 flex-wrap gap-1">
+                  @for (pair of idsOf(issue); track pair[0]) {
+                    <button
+                      type="button"
+                      class="kind-chip max-w-full"
+                      [attr.data-kind]="idTone(pair[0])"
+                      [attr.title]="'Show everything for this ' + idLabel(pair[0])"
+                      (click)="pickBiz($event, pair[0], pair[1])"
+                    >
+                      <span class="kind-pip" aria-hidden="true"></span>
+                      <span class="truncate">{{ idLabel(pair[0]) }} {{ pair[1] }}</span>
+                    </button>
+                  }
+                </span>
+              }
+            </div>
           </li>
         }
       </ul>
@@ -98,9 +116,19 @@
     <div class="grid flex-1 place-items-center px-6 py-16 text-center">
       <div>
         <img src="favicon.svg" width="36" height="36" alt="" class="mx-auto mb-3 opacity-80" />
-        <p class="font-display text-xl text-copy">{{ viewingHistory() ? 'Quiet that session' : 'Quiet this session' }}</p>
+        <p class="font-display text-xl text-copy">
+          @if (bizFilter()) {
+            Nothing for that id
+          } @else if (viewingHistory()) {
+            Quiet that session
+          } @else {
+            Quiet this session
+          }
+        </p>
         <p class="mx-auto mt-2 max-w-[28ch] text-sm leading-relaxed text-mute">
-          @if (viewingHistory()) {
+          @if (bizFilter()) {
+            No ERROR or WARN in this session mention {{ bizFilter() }}.
+          } @else if (viewingHistory()) {
             This older run has no ERROR or WARN that match the filters.
           } @else {
             New ERROR and WARN stay here until you restart Radar. Earlier runs are in History.

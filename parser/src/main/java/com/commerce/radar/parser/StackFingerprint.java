@@ -1,5 +1,7 @@
 package com.commerce.radar.parser;
 
+import com.commerce.radar.parser.model.StackFrame;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;

@@ -20,8 +20,10 @@
           [flash]="radar.flashFingerprint()"
           [canCollapse]="true"
           [viewingHistory]="radar.viewingHistory()"
+          [bizFilter]="radar.businessFilterChip()"
           (collapse)="setRail(false)"
           (pick)="pickIssue($event)"
+          (biz)="filterBiz($event)"
         />
       </div>
       <div
@@ -54,8 +56,11 @@
         [prefix]="radar.status()?.customPackagePrefix || 'com.yourcompany'"
         [canGoBack]="true"
         [wide]="!railOpen()"
+        [activeBizKey]="radar.filters().bizKey"
+        [activeBizValue]="radar.filters().bizValue"
         (mute)="radar.mute($event.fingerprint, $event.muted)"
         (back)="pane.set('list')"
+        (biz)="filterBiz($event)"
       />
     </section>
   </main>

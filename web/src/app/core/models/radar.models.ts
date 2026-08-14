@@ -57,6 +57,8 @@ export interface Filters {
   level: 'ALL' | 'ERROR' | 'WARN';
   kind: string;
   q: string;
+  bizKey: string;
+  bizValue: string;
 }
 
 export interface RunSession {

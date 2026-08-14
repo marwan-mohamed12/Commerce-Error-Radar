@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { RadarService } from '../../core/services/radar.service';
+import { BusinessFilter } from '../../core/utils/biz';
 import { InboxChrome } from './components/inbox-chrome/inbox-chrome';
 import { IssueDetailView } from './components/issue-detail/issue-detail';
 import { IssueList } from './components/issue-list/issue-list';
@@ -56,5 +57,10 @@ export class Inbox implements OnInit, OnDestroy {
   async pickIssue(fingerprint: string): Promise<void> {
     await this.radar.select(fingerprint);
     this.pane.set('detail');
+  }
+
+  filterBiz(id: BusinessFilter): void {
+    this.radar.filterByBusinessId(id.key, id.value);
+    this.pane.set('list');
   }
 }
