@@ -40,6 +40,10 @@ radar.sample-logs-dir=${user.dir}/../sample-logs
 
 radar.ignore-patterns=Solr ping,session replication,HAC login,actuator/health
 
+# Optional Windows toast when a new ERROR arrives and the UI tab is in the background.
+# The header bell overrides this at runtime (stored in SQLite settings).
+radar.notify-on-error=false
+
 # DevTools: restart when target/classes changes (IDE compile-on-save or mvn compile).
 # LiveReload is off — the Angular UI already hot-reloads on :4200.
 spring.devtools.restart.enabled=true

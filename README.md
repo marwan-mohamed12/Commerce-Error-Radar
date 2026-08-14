@@ -117,6 +117,7 @@ npm run build
 - Classifiers: CronJob, ImpEx, OCC, FlexibleSearch, Solr, Interceptor, Model save
 - Ignore list in `collector/src/main/resources/application.properties` (Solr ping, session replication, HAC, actuator)
 - Mute a fingerprint, copy stack, open an old `console-*.log` and replay it
+- Optional Windows toast + tab favicon badge when a new ERROR arrives while this tab is in the background (bell in the header; collector fires the toast, UI draws the badge)
 - Log rotation: a newer `console-YYYYMMDD.log` is picked up without restarting the collector
 
 ## Layout
@@ -153,6 +154,7 @@ Copy `collector/src/main/resources/application.properties.example` to `applicati
 radar.hybris-home=D:/hybris
 radar.custom-package-prefix=com.yourcompany
 radar.tail-from-end=true
+radar.notify-on-error=false
 radar.ignore-patterns=Solr ping,session replication
 ```
 
@@ -161,6 +163,7 @@ Use forward slashes in `application.properties`. Flags:
 - `--radar.hybris-home=D:/hybris` (omit this flag entirely if you want the file value)
 - `--radar.custom-package-prefix=com.yourcompany`
 - `--radar.tail-from-end=false` to replay the current file from the start
+- `--radar.notify-on-error=true` to default the header bell on (the UI still persists the toggle)
 
 ## Out of scope
 

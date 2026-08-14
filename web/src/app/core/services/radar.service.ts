@@ -1,8 +1,9 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, computed, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { Filters, Issue, IssueDetail, RunSession, RunStatus } from '../models/radar.models';
+import { EventItem, Filters, Issue, IssueDetail, NotifyPing, RunSession, RunStatus } from '../models/radar.models';
 import { bizFilterTitle, bizLabel } from '../utils/biz';
+import { NotifyService } from './notify.service';
 
 @Injectable({ providedIn: 'root' })
 export class RadarService {
@@ -51,10 +52,13 @@ export class RadarService {
   private source: EventSource | null = null;
   private flashTimer: ReturnType<typeof setTimeout> | null = null;
 
-  constructor(private readonly http: HttpClient) {}
+  constructor(
+    private readonly http: HttpClient,
+    private readonly notify: NotifyService,
+  ) {}
 
   async bootstrap(): Promise<void> {
-    await Promise.all([this.refreshStatus(), this.refreshSessions(), this.refreshIssues()]);
+    await Promise.all([this.refreshStatus(), this.refreshSessions(), this.refreshIssues(), this.notify.load()]);
     this.connect();
   }
 
@@ -194,7 +198,10 @@ export class RadarService {
       this.connected.set(true);
       let fingerprint: string | null = null;
       try {
-        const payload = JSON.parse((event as MessageEvent).data) as { issue?: Issue };
+        const payload = JSON.parse((event as MessageEvent).data) as {
+          issue?: Issue;
+          event?: EventItem;
+        };
         fingerprint = payload.issue?.fingerprint ?? null;
       } catch {
         fingerprint = null;
@@ -208,6 +215,14 @@ export class RadarService {
       }
       void this.refreshStatus();
       void this.refreshSessions();
+    });
+    source.addEventListener('notify', (event) => {
+      try {
+        const ping = JSON.parse((event as MessageEvent).data) as NotifyPing;
+        this.notify.onPing(ping);
+      } catch {
+        /* ignore malformed notify */
+      }
     });
     source.addEventListener('status', () => {
       void this.refreshStatus();

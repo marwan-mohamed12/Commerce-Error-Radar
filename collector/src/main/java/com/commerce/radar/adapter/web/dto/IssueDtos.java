@@ -147,6 +147,15 @@ public final class IssueDtos {
     public record MuteRequest(boolean muted) {
     }
 
+    public record NotifySettingsResponse(boolean enabled, boolean tabHidden, boolean windowsToast) {
+    }
+
+    public record NotifyEnabledRequest(boolean enabled) {
+    }
+
+    public record NotifyPresenceRequest(boolean hidden) {
+    }
+
     private static String truncate(String s, int max) {
         if (s == null) {
             return "";

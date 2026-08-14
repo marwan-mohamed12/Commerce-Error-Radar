@@ -150,6 +150,12 @@
     color: var(--radar-brass);
   }
 
+  .icon-btn-on {
+    border-color: var(--radar-brass);
+    color: var(--radar-brass);
+    background: color-mix(in srgb, var(--radar-brass) 12%, transparent);
+  }
+
   .radar-mark {
     display: block;
     width: 1.75rem;

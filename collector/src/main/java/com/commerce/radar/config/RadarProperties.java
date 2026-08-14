@@ -42,6 +42,12 @@ public class RadarProperties {
      */
     private Path sampleLogsDir = Path.of("../sample-logs");
 
+    /**
+     * Default for optional ERROR Windows toasts. The UI bell overrides this
+     * and stores the choice in SQLite ({@code settings.notify.enabled}).
+     */
+    private boolean notifyOnError = false;
+
     /** Substring match against raw + context. Matching events are dropped. */
     private List<String> ignorePatterns = new ArrayList<>(List.of(
             "Solr ping",
@@ -154,5 +160,13 @@ public class RadarProperties {
 
     public void setIgnorePatterns(List<String> ignorePatterns) {
         this.ignorePatterns = ignorePatterns;
+    }
+
+    public boolean isNotifyOnError() {
+        return notifyOnError;
+    }
+
+    public void setNotifyOnError(boolean notifyOnError) {
+        this.notifyOnError = notifyOnError;
     }
 }
