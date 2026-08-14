@@ -5,6 +5,11 @@ import com.commerce.radar.adapter.web.dto.IssueDtos.IssueDetailResponse;
 import com.commerce.radar.adapter.web.dto.IssueDtos.IssueResponse;
 import com.commerce.radar.adapter.web.dto.IssueDtos.MuteRequest;
 import com.commerce.radar.adapter.persistence.RadarRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import com.commerce.radar.adapter.persistence.StoredIssue;
 import com.commerce.radar.adapter.tail.ConsoleLogTailer;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +26,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/issues")
+@Tag(name = "Issues", description = "Grouped ERROR/WARN for one session. Fingerprints go in a query param.")
 public class IssueController {
 
     private final RadarRepository repository;
@@ -32,12 +38,18 @@ public class IssueController {
     }
 
     @GetMapping
+    @Operation(summary = "List issues", description = "Empty runId uses the current session.")
     public List<IssueResponse> list(
+            @Parameter(description = "ERROR, WARN, or omit for all")
             @RequestParam(name = "level", required = false) String level,
+            @Parameter(description = "OCC, CRONJOB, IMPEX, FLEXIBLE_SEARCH, SOLR, INTERCEPTOR, MODEL_SAVE, OTHER")
             @RequestParam(name = "kind", required = false) String kind,
+            @Parameter(description = "Search title, message, or class")
             @RequestParam(name = "q", required = false) String q,
+            @Parameter(description = "order, product, user, cronjob, impex, catalogVersion")
             @RequestParam(name = "bizKey", required = false) String bizKey,
             @RequestParam(name = "bizValue", required = false) String bizValue,
+            @Parameter(description = "Session id. Omit for the current run.")
             @RequestParam(name = "runId", required = false) Long runId,
             @RequestParam(name = "includeMuted", defaultValue = "false") boolean includeMuted
     ) {
@@ -52,7 +64,11 @@ public class IssueController {
     }
 
     @GetMapping("/one")
+    @Operation(summary = "Get one issue", description = "Must use a query param — fingerprints contain @.")
+    @ApiResponse(responseCode = "200", description = "Issue and recent events")
+    @ApiResponse(responseCode = "404", description = "Unknown fingerprint in this session", content = @Content)
     public ResponseEntity<IssueDetailResponse> detail(
+            @Parameter(required = true, example = "NullPointerException@com.yourcompany.facades.impl.DefaultCartFacade.addToCart")
             @RequestParam("fingerprint") String fingerprint,
             @RequestParam(name = "runId", required = false) Long runId
     ) {
@@ -72,7 +88,11 @@ public class IssueController {
     }
 
     @PostMapping("/mute")
+    @Operation(summary = "Mute or unmute", description = "Mute is per fingerprint and global.")
+    @ApiResponse(responseCode = "200", description = "Updated issue")
+    @ApiResponse(responseCode = "404", description = "Unknown fingerprint", content = @Content)
     public ResponseEntity<IssueResponse> mute(
+            @Parameter(required = true, example = "NullPointerException@com.yourcompany.facades.impl.DefaultCartFacade.addToCart")
             @RequestParam("fingerprint") String fingerprint,
             @RequestBody(required = false) MuteRequest request
     ) {
