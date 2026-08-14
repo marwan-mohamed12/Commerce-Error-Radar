@@ -338,6 +338,7 @@ Commerce-Error-Radar/
   web/                      Angular 22 dashboard
   sample-logs/              demo console chunk for DEMO mode
   docs/screenshots/         UI captures (add your PNGs here)
+  docs/postman/             Postman collection + local environment
   start.bat                 collector + UI in two terminals
   start-collector.bat
   start-ui.bat
@@ -349,7 +350,14 @@ The parser has **no** Spring dependency. New parse / fingerprint / classifier lo
 
 ## API
 
-The UI uses these. Useful if you want to curl the collector directly.
+A Postman collection lives in [`docs/postman/`](docs/postman/). Import both files:
+
+- [`Commerce-Error-Radar.postman_collection.json`](docs/postman/Commerce-Error-Radar.postman_collection.json)
+- [`Commerce-Error-Radar.postman_environment.json`](docs/postman/Commerce-Error-Radar.postman_environment.json)
+
+Select the **Commerce Error Radar — local** environment (`baseUrl` = `http://localhost:8088`). Start the collector, then run **Current run** and **List issues** first — they fill `runId` and `fingerprint`. See [`docs/postman/README.md`](docs/postman/README.md).
+
+The UI uses the same routes. Useful if you want to curl the collector directly.
 
 | Method | Path | Purpose |
 |---|---|---|

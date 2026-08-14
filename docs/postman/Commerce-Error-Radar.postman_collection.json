@@ -1,0 +1,196 @@
+{
+  "info": {
+    "_postman_id": "7c4e9b12-a4d0-4c8a-9e21-0f3a6b8d2c11",
+    "name": "Commerce Error Radar",
+    "description": "Local collector API. Start the collector first (`mvn -pl collector -am spring-boot:run` or `start-collector.bat`), then send to `{{baseUrl}}` (default `http://localhost:8088`).\n\nFingerprints contain `@`, so issue detail and mute use a **query param**, not a path.\n\nRun **Current run** then **List issues** first — they save `runId` and `fingerprint`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8088" },
+    { "key": "runId", "value": "" },
+    { "key": "fingerprint", "value": "NullPointerException@com.yourcompany.facades.impl.DefaultCartFacade.addToCart" }
+  ],
+  "item": [
+    {
+      "name": "Runs",
+      "item": [
+        {
+          "name": "List sessions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/runs",
+            "description": "One row per `console-*.log` file."
+          }
+        },
+        {
+          "name": "Current run",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code !== 200) { return; }",
+                  "const body = pm.response.json();",
+                  "if (body && body.id) {",
+                  "  pm.collectionVariables.set('runId', String(body.id));",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/runs/current",
+            "description": "Tail status for the file Radar is reading. Saves `runId`."
+          }
+        },
+        {
+          "name": "Open log",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"path\": \"D:/hybris/hybris/log/tomcat/console-20260809.log\",\n  \"replay\": true\n}\n"
+            },
+            "url": "{{baseUrl}}/api/runs/open",
+            "description": "Point the tailer at a console file. `replay: true` reads from the start. `replay: false` tails from EOF. Change `path` to a file on your machine."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Issues",
+      "item": [
+        {
+          "name": "List issues",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code !== 200) { return; }",
+                  "const rows = pm.response.json();",
+                  "if (Array.isArray(rows) && rows.length && rows[0].fingerprint) {",
+                  "  pm.collectionVariables.set('fingerprint', rows[0].fingerprint);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/issues?runId={{runId}}&includeMuted=false",
+            "description": "Issues in one session. Optional query params: `level` (ERROR|WARN), `kind` (OCC, CRONJOB, IMPEX, FLEXIBLE_SEARCH, SOLR, INTERCEPTOR, MODEL_SAVE, OTHER), `q`, `bizKey` + `bizValue` (order, product, user, cronjob, impex, catalogVersion). Empty `runId` uses the current run. Saves `fingerprint` from the first row."
+          }
+        },
+        {
+          "name": "List issues (ERROR only)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/issues?runId={{runId}}&level=ERROR&includeMuted=false",
+            "description": "Same list, ERROR only."
+          }
+        },
+        {
+          "name": "Get one issue",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/issues/one?fingerprint={{fingerprint}}&runId={{runId}}",
+            "description": "Issue plus recent events. `fingerprint` must be a query param — values contain `@`."
+          }
+        },
+        {
+          "name": "Mute issue",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"muted\": true\n}\n"
+            },
+            "url": "{{baseUrl}}/api/issues/mute?fingerprint={{fingerprint}}",
+            "description": "Mute is per fingerprint and global. Set `muted` to false to unmute."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Events",
+      "item": [
+        {
+          "name": "Search events",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/events?limit=100",
+            "description": "Flat search. Optional `level`, `q`. `limit` is 1–500 (default 100)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notify",
+      "item": [
+        {
+          "name": "Get notify settings",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/notify",
+            "description": "Returns `enabled`, `tabHidden`, `windowsToast`."
+          }
+        },
+        {
+          "name": "Set notify enabled",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enabled\": true\n}\n"
+            },
+            "url": "{{baseUrl}}/api/notify",
+            "description": "Turns the header bell on or off. Enabling fires a confirmation toast on Windows."
+          }
+        },
+        {
+          "name": "Report tab presence",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hidden\": true\n}\n"
+            },
+            "url": "{{baseUrl}}/api/notify/presence",
+            "description": "The UI posts this. `hidden: true` lets the collector toast on the next ERROR."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Stream",
+      "item": [
+        {
+          "name": "SSE stream",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "text/event-stream" }
+            ],
+            "url": "{{baseUrl}}/api/stream",
+            "description": "Long-lived SSE. Events: `hello`, `issue`, `status`, `notify`. Cancel the request when you are done."
+          }
+        }
+      ]
+    }
+  ]
+}
