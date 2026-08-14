@@ -2,7 +2,7 @@ import { Component, computed, effect, input, output, signal } from '@angular/cor
 import { IssueDetail } from '../../../../core/models/radar.models';
 import { BusinessFilter, bizEntries, bizFilterTitle, bizLabel, bizTone } from '../../../../core/utils/biz';
 import { displayTitle, kindKey, kindLabel as labelForKind } from '../../../../core/utils/kind';
-import { issueMarkdown, issueTeams } from '../../../../core/utils/share';
+import { copyHtml, issueMarkdown, issueTeams } from '../../../../core/utils/share';
 import { StackBlock, collapseFramework, parseStack, shortPackage } from '../../../../core/utils/stack';
 import { clockTime, relativeTime } from '../../../../core/utils/time';
 
@@ -158,7 +158,14 @@ export class IssueDetailView {
     if (!detail) {
       return;
     }
-    await this.copyText(issueTeams(detail), 'teams');
+    const payload = issueTeams(detail);
+    await copyHtml(payload.html, payload.plain);
+    this.copied.set('teams');
+    setTimeout(() => {
+      if (this.copied() === 'teams') {
+        this.copied.set(null);
+      }
+    }, 1600);
   }
 
   private async copyText(text: string, kind: 'stack' | 'md' | 'teams'): Promise<void> {
