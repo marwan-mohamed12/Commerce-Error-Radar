@@ -46,5 +46,10 @@ Desktop.ini
 .env
 .env.local
 application-local.yml
+collector/src/main/resources/application.properties
+
+# Local-only notes (not for clones)
+AGENTS.md
+Plan/
 
 .grok

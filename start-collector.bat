@@ -8,9 +8,19 @@ if "%JAVA_HOME%"=="" (
   )
 )
 
+if not exist "collector\src\main\resources\application.properties" (
+  if exist "collector\src\main\resources\application.properties.example" (
+    copy /y "collector\src\main\resources\application.properties.example" "collector\src\main\resources\application.properties" >nul
+    echo Created collector\src\main\resources\application.properties from the example.
+    echo Edit radar.hybris-home and radar.custom-package-prefix for your machine.
+  ) else (
+    echo Missing collector\src\main\resources\application.properties.example
+  )
+)
+
 set "FILE_HOME="
 set "FILE_PREFIX="
-for /f "usebackq eol=# tokens=1,* delims==" %%A in ("collector\src\main\resources\application.properties") do (
+if exist "collector\src\main\resources\application.properties" for /f "usebackq eol=# tokens=1,* delims==" %%A in ("collector\src\main\resources\application.properties") do (
   if /i "%%A"=="radar.hybris-home" set "FILE_HOME=%%B"
   if /i "%%A"=="radar.custom-package-prefix" set "FILE_PREFIX=%%B"
 )

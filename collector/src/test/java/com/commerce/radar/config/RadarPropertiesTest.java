@@ -29,10 +29,10 @@ class RadarPropertiesTest {
     @Test
     void configuredPathWinsOverEmptyPlaceholders() {
         RadarProperties properties = new RadarProperties();
-        properties.setHybrisHome("D:/dccp-digitalcommerce-customerportal/core-customize/hybris");
+        properties.setHybrisHome("D:/hybris/core-customize/hybris");
         assertTrue(properties.hasHybrisHome());
         assertEquals(
-                "D:\\dccp-digitalcommerce-customerportal\\core-customize\\hybris"
+                "D:\\hybris\\core-customize\\hybris"
                         .replace('\\', '/'),
                 properties.resolvedHybrisHome().toString().replace('\\', '/')
         );
