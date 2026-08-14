@@ -2,6 +2,8 @@
 
 Collection for the collector on **http://localhost:8088**. Start the collector before you send anything.
 
+Prefer Swagger for trying routes in the browser: [http://localhost:8088/swagger-ui.html](http://localhost:8088/swagger-ui.html).
+
 ## Import
 
 1. Postman → **Import**

@@ -19,6 +19,7 @@ Spring Boot collector :8088  →  SQLite  →  Angular UI
 | | |
 |---|---|
 | Collector | `http://localhost:8088` |
+| Swagger UI | `http://localhost:8088/swagger-ui.html` |
 | UI (`npm start`) | `http://localhost:4500` |
 | UI (`ng serve` / `angular.json`) | `http://localhost:4200` |
 
@@ -350,7 +351,14 @@ The parser has **no** Spring dependency. New parse / fingerprint / classifier lo
 
 ## API
 
-A Postman collection lives in [`docs/postman/`](docs/postman/). Import both files:
+Interactive docs are on the collector after it starts:
+
+- Swagger UI: [http://localhost:8088/swagger-ui.html](http://localhost:8088/swagger-ui.html)
+- OpenAPI JSON: [http://localhost:8088/v3/api-docs](http://localhost:8088/v3/api-docs)
+
+Try every route there. Fingerprints contain `@`, so issue detail and mute use a **query** parameter.
+
+A Postman collection also lives in [`docs/postman/`](docs/postman/). Import both files:
 
 - [`Commerce-Error-Radar.postman_collection.json`](docs/postman/Commerce-Error-Radar.postman_collection.json)
 - [`Commerce-Error-Radar.postman_environment.json`](docs/postman/Commerce-Error-Radar.postman_environment.json)
@@ -383,7 +391,7 @@ PRs are welcome. Keep the change small, local, and covered by a test when behavi
 | Change | Put it here |
 |---|---|
 | Parse a new log shape, fingerprint, classifier, or business id | `parser/` + a fixture under `parser/src/test/resources/fixtures/` |
-| Tailer, SQLite, REST, SSE, Windows toast | `collector/` |
+| Tailer, SQLite, REST, SSE, Windows toast | `collector/` — new routes need `@Operation` so Swagger stays complete |
 | Inbox UI | `web/src/app/` (`core/` or `features/<name>/`). Standalone components and signals. No NgModules |
 
 The parser has **no** Spring dependency. Do not add Spring annotations there.

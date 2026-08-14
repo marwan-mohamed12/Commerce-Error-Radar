@@ -4,6 +4,7 @@ import com.commerce.radar.adapter.persistence.RunSummary;
 import com.commerce.radar.adapter.persistence.StoredEvent;
 import com.commerce.radar.adapter.persistence.StoredIssue;
 import com.commerce.radar.adapter.tail.TailStatus;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.Instant;
 import java.util.List;
@@ -14,10 +15,14 @@ public final class IssueDtos {
     private IssueDtos() {
     }
 
+    @Schema(description = "Grouped issue keyed by fingerprint")
     public record IssueResponse(
+            @Schema(example = "NullPointerException@com.yourcompany.facades.impl.DefaultCartFacade.addToCart")
             String fingerprint,
             String title,
+            @Schema(example = "ERROR")
             String level,
+            @Schema(example = "OCC")
             String kind,
             long count,
             Instant firstSeen,
@@ -44,6 +49,7 @@ public final class IssueDtos {
         }
     }
 
+    @Schema(description = "One persisted WARN/ERROR event")
     public record EventResponse(
             long id,
             long runId,
@@ -141,19 +147,35 @@ public final class IssueDtos {
         }
     }
 
-    public record OpenLogRequest(String path, boolean replay) {
+    @Schema(description = "Point the tailer at a console file")
+    public record OpenLogRequest(
+            @Schema(description = "Absolute path to a console-*.log", example = "D:/hybris/hybris/log/tomcat/console-20260809.log")
+            String path,
+            @Schema(description = "true = read from the start, false = tail from EOF")
+            boolean replay
+    ) {
     }
 
-    public record MuteRequest(boolean muted) {
+    @Schema(description = "Mute is per fingerprint and global")
+    public record MuteRequest(
+            @Schema(description = "true mutes, false unmutes")
+            boolean muted
+    ) {
     }
 
     public record NotifySettingsResponse(boolean enabled, boolean tabHidden, boolean windowsToast) {
     }
 
-    public record NotifyEnabledRequest(boolean enabled) {
+    public record NotifyEnabledRequest(
+            @Schema(description = "true turns the header bell on")
+            boolean enabled
+    ) {
     }
 
-    public record NotifyPresenceRequest(boolean hidden) {
+    public record NotifyPresenceRequest(
+            @Schema(description = "true when the Radar window is unfocused or the tab is hidden")
+            boolean hidden
+    ) {
     }
 
     private static String truncate(String s, int max) {
