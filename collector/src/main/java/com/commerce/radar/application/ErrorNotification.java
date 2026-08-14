@@ -36,6 +36,18 @@ public record ErrorNotification(
         return "Radar · " + level + " · " + kind;
     }
 
+    /** Shown the moment the header bell is turned on, so a dead toaster is obvious. */
+    public static ErrorNotification confirmation() {
+        return new ErrorNotification(
+                "",
+                "ERROR",
+                "OTHER",
+                "Notifications on",
+                "Radar will toast when an ERROR arrives while this window is unfocused.",
+                0
+        );
+    }
+
     private static String first(String... values) {
         if (values == null) {
             return "";

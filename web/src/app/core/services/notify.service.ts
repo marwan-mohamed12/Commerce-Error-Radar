@@ -26,7 +26,7 @@ const DEFAULT_ICONS: IconSpec[] = [
 /**
  * Tab-side half of ERROR notify: favicon badge + presence.
  * The collector decides what is notifiable, persists the toggle, and fires
- * the Windows toast while this tab reports it is hidden.
+ * the Windows toast while this window reports it is unfocused or hidden.
  */
 @Injectable({ providedIn: 'root' })
 export class NotifyService {
@@ -35,15 +35,15 @@ export class NotifyService {
   readonly permission = signal<NotificationPermission>(this.readPermission());
   readonly hint = computed(() => {
     if (!this.enabled()) {
-      return 'Notify on ERROR when this tab is in the background';
+      return 'Notify on ERROR when Radar is unfocused or in another tab';
     }
     if (this.windowsToast()) {
-      return 'ERROR notifications on — Windows toast and tab badge';
+      return 'ERROR notifications on — Windows toast when this window is unfocused';
     }
     if (this.canBrowserToast()) {
-      return 'ERROR notifications on — browser toast and tab badge';
+      return 'ERROR notifications on — browser toast when this window is unfocused';
     }
-    return 'Tab badge on — Windows toasts are handled by the collector when available';
+    return 'Tab badge on — allow notifications or use a Windows toast from the collector';
   });
 
   private unseen = 0;
@@ -60,6 +60,9 @@ export class NotifyService {
     try {
       const settings = await firstValueFrom(this.http.get<NotifySettings>('/api/notify'));
       this.applySettings(settings);
+      if (this.enabled()) {
+        await this.requestPermission();
+      }
     } catch {
       /* collector down — radar.service already surfaces that */
     }
@@ -69,7 +72,7 @@ export class NotifyService {
 
   async toggle(): Promise<void> {
     const next = !this.enabled();
-    if (next && !this.windowsToast()) {
+    if (next) {
       await this.requestPermission();
     }
     try {
@@ -92,9 +95,9 @@ export class NotifyService {
     }
     this.unseen += 1;
     this.applyBadge(this.unseen);
-    if (!this.windowsToast()) {
-      this.showBrowserToast(ping);
-    }
+    // Windows toast is the primary channel, but Show() can succeed and still
+    // never pop (unregistered AUMID). Browser toast is the safety net.
+    this.showBrowserToast(ping);
   }
 
   private applySettings(settings: NotifySettings): void {
@@ -108,14 +111,17 @@ export class NotifyService {
     }
     this.presenceBound = true;
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') {
+      if (!this.tabHidden()) {
         this.clearUnseen();
       }
       void this.reportPresence();
     });
     window.addEventListener('focus', () => {
       this.clearUnseen();
-      void this.reportPresence();
+      void this.reportPresence(false);
+    });
+    window.addEventListener('blur', () => {
+      void this.reportPresence(true);
     });
     window.addEventListener('pagehide', () => {
       void this.reportPresence(true);
@@ -157,8 +163,13 @@ export class NotifyService {
     return Notification.permission;
   }
 
+  /**
+   * Hidden to the developer — not only `visibilityState === 'hidden'`.
+   * Alt-tabbing to the Hybris console leaves the Radar tab "visible",
+   * and that used to suppress every Windows toast.
+   */
   private tabHidden(): boolean {
-    return document.visibilityState === 'hidden';
+    return document.visibilityState === 'hidden' || !document.hasFocus();
   }
 
   private showBrowserToast(ping: NotifyPing): void {

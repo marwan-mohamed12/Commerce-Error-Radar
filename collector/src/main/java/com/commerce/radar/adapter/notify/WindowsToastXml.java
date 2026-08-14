@@ -10,7 +10,7 @@ public final class WindowsToastXml {
 
     public static String document(String title, String body) {
         return """
-                <toast>
+                <toast duration="long">
                   <visual>
                     <binding template="ToastGeneric">
                       <text>%s</text>

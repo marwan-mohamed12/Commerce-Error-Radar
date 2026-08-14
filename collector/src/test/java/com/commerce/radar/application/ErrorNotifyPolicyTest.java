@@ -40,6 +40,14 @@ class ErrorNotifyPolicyTest {
         assertEquals("OCC", ping.kind());
     }
 
+    @Test
+    void confirmationPingIsAToastNotAnIssue() {
+        ErrorNotification ping = ErrorNotification.confirmation();
+        assertEquals("Notifications on", ping.title());
+        assertTrue(ping.message().contains("unfocused"));
+        assertEquals("", ping.fingerprint());
+    }
+
     private static StoredIssue issue(String level, boolean muted) {
         Instant now = Instant.parse("2026-08-14T12:00:00Z");
         return new StoredIssue(

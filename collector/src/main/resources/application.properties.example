@@ -40,7 +40,7 @@ radar.sample-logs-dir=${user.dir}/../sample-logs
 
 radar.ignore-patterns=Solr ping,session replication,HAC login,actuator/health
 
-# Optional Windows toast when a new ERROR arrives and the UI tab is in the background.
+# Optional Windows toast when a new ERROR arrives and the Radar window is unfocused.
 # The header bell overrides this at runtime (stored in SQLite settings).
 radar.notify-on-error=false
 
