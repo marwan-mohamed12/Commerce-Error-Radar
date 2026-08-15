@@ -6,6 +6,10 @@ export const KIND_ORDER = [
   'SOLR',
   'INTERCEPTOR',
   'MODEL_SAVE',
+  'INITIALIZE',
+  'UPDATE',
+  'ANT',
+  'TOMCAT',
   'OTHER',
 ] as const;
 
@@ -30,8 +34,35 @@ export function kindLabel(kind: string): string {
       return 'Interceptor';
     case 'MODEL_SAVE':
       return 'Model save';
+    case 'INITIALIZE':
+      return 'Initialize';
+    case 'UPDATE':
+      return 'Update';
+    case 'ANT':
+      return 'Ant';
+    case 'TOMCAT':
+      return 'Tomcat';
     default:
       return (kind || 'OTHER').replaceAll('_', ' ');
+  }
+}
+
+export function logKindLabel(kind: string | null | undefined): string {
+  switch ((kind || '').toUpperCase()) {
+    case 'ALL':
+      return 'All';
+    case 'CONSOLE':
+      return 'console';
+    case 'CATALINA':
+      return 'catalina';
+    case 'WRAPPER':
+      return 'wrapper.log';
+    case 'ANT':
+      return 'ant.log';
+    case 'LOCALHOST':
+      return 'localhost';
+    default:
+      return kind ? kind.replaceAll('_', ' ') : 'Log';
   }
 }
 

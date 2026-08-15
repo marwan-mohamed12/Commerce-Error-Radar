@@ -48,6 +48,8 @@ class OpenApiDocsTest {
         assertTrue(documented.contains("/api/runs"), documented.toString());
         assertTrue(documented.contains("/api/runs/current"), documented.toString());
         assertTrue(documented.contains("/api/runs/open"), documented.toString());
+        assertTrue(documented.contains("/api/runs/sources"), documented.toString());
+        assertTrue(documented.contains("/api/runs/follow"), documented.toString());
         assertTrue(documented.contains("/api/issues"), documented.toString());
         assertTrue(documented.contains("/api/issues/one"), documented.toString());
         assertTrue(documented.contains("/api/issues/mute"), documented.toString());

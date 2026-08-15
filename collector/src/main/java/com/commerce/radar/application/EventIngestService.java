@@ -85,7 +85,8 @@ public class EventIngestService {
                 parsed.hasCustomFrame(),
                 false,
                 parsed.message(),
-                ids
+                ids,
+                ""
         ));
         hub.publish(issue, stored);
         notify.onEvent(issue, stored);

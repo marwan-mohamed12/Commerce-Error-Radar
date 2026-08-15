@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * One closed WARN/ERROR event parsed from a Hybris / Spring console log.
+ * One closed WARN/ERROR event parsed from a Hybris / Spring / Ant / Catalina log.
  */
 public record ParsedEvent(
         Instant timestamp,

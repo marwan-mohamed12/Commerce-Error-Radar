@@ -26,7 +26,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/issues")
-@Tag(name = "Issues", description = "Grouped ERROR/WARN for one session. Fingerprints go in a query param.")
+@Tag(name = "Issues", description = "Grouped ERROR/WARN for live logs or one session. Fingerprints go in a query param.")
 public class IssueController {
 
     private final RadarRepository repository;
@@ -42,22 +42,24 @@ public class IssueController {
     public List<IssueResponse> list(
             @Parameter(description = "ERROR, WARN, or omit for all")
             @RequestParam(name = "level", required = false) String level,
-            @Parameter(description = "OCC, CRONJOB, IMPEX, FLEXIBLE_SEARCH, SOLR, INTERCEPTOR, MODEL_SAVE, OTHER")
+            @Parameter(description = "OCC, CRONJOB, IMPEX, FLEXIBLE_SEARCH, SOLR, INTERCEPTOR, MODEL_SAVE, INITIALIZE, UPDATE, ANT, TOMCAT, OTHER")
             @RequestParam(name = "kind", required = false) String kind,
             @Parameter(description = "Search title, message, or class")
             @RequestParam(name = "q", required = false) String q,
             @Parameter(description = "order, product, user, cronjob, impex, catalogVersion")
             @RequestParam(name = "bizKey", required = false) String bizKey,
             @RequestParam(name = "bizValue", required = false) String bizValue,
-            @Parameter(description = "Session id. Omit for the current run.")
+            @Parameter(description = "Session id. Omit for the live sources (All or logKind).")
             @RequestParam(name = "runId", required = false) Long runId,
+            @Parameter(description = "ALL, CONSOLE, WRAPPER, ANT, CATALINA, LOCALHOST")
+            @RequestParam(name = "logKind", required = false) String logKind,
             @RequestParam(name = "includeMuted", defaultValue = "false") boolean includeMuted
     ) {
-        long session = resolveRunId(runId);
-        if (session <= 0) {
+        List<Long> sessions = resolveRunIds(runId, logKind);
+        if (sessions.isEmpty()) {
             return List.of();
         }
-        return repository.listIssues(session, level, kind, q, bizKey, bizValue, includeMuted)
+        return repository.listIssuesForRuns(sessions, level, kind, q, bizKey, bizValue, includeMuted)
                 .stream()
                 .map(IssueResponse::from)
                 .toList();
@@ -70,17 +72,18 @@ public class IssueController {
     public ResponseEntity<IssueDetailResponse> detail(
             @Parameter(required = true, example = "NullPointerException@com.yourcompany.facades.impl.DefaultCartFacade.addToCart")
             @RequestParam("fingerprint") String fingerprint,
-            @RequestParam(name = "runId", required = false) Long runId
+            @RequestParam(name = "runId", required = false) Long runId,
+            @RequestParam(name = "logKind", required = false) String logKind
     ) {
         String decoded = fingerprint == null ? "" : URLDecoder.decode(fingerprint, StandardCharsets.UTF_8);
-        long session = resolveRunId(runId);
-        StoredIssue issue = session > 0
-                ? repository.findIssueInRun(decoded, session).orElse(null)
+        List<Long> sessions = resolveRunIds(runId, logKind);
+        StoredIssue issue = !sessions.isEmpty()
+                ? repository.findIssueInRuns(decoded, sessions).orElse(null)
                 : repository.findIssue(decoded).orElse(null);
         if (issue == null) {
             return ResponseEntity.notFound().build();
         }
-        List<EventResponse> events = repository.listEventsForFingerprint(decoded, session > 0 ? session : null, 25)
+        List<EventResponse> events = repository.listEventsForFingerprint(decoded, sessions, 25)
                 .stream()
                 .map(EventResponse::from)
                 .toList();
@@ -105,10 +108,10 @@ public class IssueController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    private long resolveRunId(Long runId) {
+    private List<Long> resolveRunIds(Long runId, String logKind) {
         if (runId != null && runId > 0) {
-            return runId;
+            return List.of(runId);
         }
-        return tailer.status().getRunId();
+        return tailer.activeRunIds(logKind);
     }
 }

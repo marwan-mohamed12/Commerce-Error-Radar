@@ -1,0 +1,8 @@
+15-Aug-2026 10:22:01.445 INFO [main] org.apache.catalina.startup.VersionLoggerListener.log Server version name:   Apache Tomcat/9.0.98
+15-Aug-2026 10:22:05.123 SEVERE [main] org.apache.catalina.core.StandardContext.startInternal One or more listeners failed to start. Full details will be found in the appropriate container log file
+java.lang.IllegalStateException: Error starting child
+	at org.apache.catalina.core.ContainerBase.addChildInternal(ContainerBase.java:729)
+	at org.apache.catalina.core.StandardHost.addChild(StandardHost.java:662)
+	at org.apache.catalina.startup.HostConfig.deployDirectory(HostConfig.java:1184)
+15-Aug-2026 10:22:05.124 SEVERE [main] org.apache.catalina.core.StandardContext.startInternal Context [/store] startup failed due to previous errors
+15-Aug-2026 10:22:05.200 INFO [main] org.apache.catalina.startup.Catalina.start Server startup in [4123] milliseconds

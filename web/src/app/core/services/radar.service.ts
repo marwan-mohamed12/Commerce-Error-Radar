@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, computed, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { EventItem, Filters, Issue, IssueDetail, NotifyPing, RunSession, RunStatus } from '../models/radar.models';
+import { EventItem, Filters, Issue, IssueDetail, LogSource, NotifyPing, RunSession, RunStatus } from '../models/radar.models';
 import { bizFilterTitle, bizLabel } from '../utils/biz';
 import { NotifyService } from './notify.service';
 
@@ -14,6 +14,7 @@ export class RadarService {
   readonly filters = signal<Filters>({
     level: 'ALL',
     kind: 'ALL',
+    logKind: 'ALL',
     q: '',
     bizKey: '',
     bizValue: '',
@@ -36,12 +37,20 @@ export class RadarService {
   readonly flashFingerprint = signal<string | null>(null);
   readonly error = signal<string | null>(null);
   readonly sessions = signal<RunSession[]>([]);
+  readonly sources = signal<LogSource[]>([]);
   readonly viewRunId = signal<number | null>(null);
 
   readonly viewingHistory = computed(() => {
-    const current = this.status()?.id ?? 0;
     const view = this.viewRunId();
-    return view != null && current > 0 && view !== current;
+    if (view == null) {
+      return false;
+    }
+    const active = this.status()?.activeRunIds ?? [];
+    if (active.includes(view)) {
+      return false;
+    }
+    const current = this.status()?.id ?? 0;
+    return current > 0 && view !== current;
   });
 
   readonly selected = computed(() => {
@@ -91,9 +100,10 @@ export class RadarService {
     if (f.bizKey && f.bizValue) {
       params = params.set('bizKey', f.bizKey).set('bizValue', f.bizValue);
     }
-    const runId = this.activeRunId();
-    if (runId > 0) {
-      params = params.set('runId', String(runId));
+    if (this.viewingHistory()) {
+      params = params.set('runId', String(this.viewRunId()));
+    } else {
+      params = params.set('logKind', f.logKind || 'ALL');
     }
     const issues = await firstValueFrom(this.http.get<Issue[]>('/api/issues', { params }));
     this.issues.set(issues);
@@ -108,9 +118,10 @@ export class RadarService {
   async select(fingerprint: string): Promise<void> {
     this.selectedFingerprint.set(fingerprint);
     let params = new HttpParams().set('fingerprint', fingerprint);
-    const runId = this.activeRunId();
-    if (runId > 0) {
-      params = params.set('runId', String(runId));
+    if (this.viewingHistory()) {
+      params = params.set('runId', String(this.viewRunId()));
+    } else {
+      params = params.set('logKind', this.filters().logKind || 'ALL');
     }
     const detail = await firstValueFrom(this.http.get<IssueDetail>('/api/issues/one', { params }));
     this.detail.set(detail);
@@ -122,6 +133,15 @@ export class RadarService {
       this.sessions.set(sessions);
     } catch {
       /* status refresh already reports collector down */
+    }
+  }
+
+  async refreshSources(): Promise<void> {
+    try {
+      const sources = await firstValueFrom(this.http.get<LogSource[]>('/api/runs/sources'));
+      this.sources.set(sources);
+    } catch {
+      this.sources.set([]);
     }
   }
 
@@ -141,6 +161,12 @@ export class RadarService {
 
   setFilter<K extends keyof Filters>(key: K, value: Filters[K]): void {
     this.filters.update((f) => ({ ...f, [key]: value }));
+    void this.refreshIssues();
+  }
+
+  setLogKind(logKind: string): void {
+    this.viewRunId.set(null);
+    this.filters.update((f) => ({ ...f, logKind }));
     void this.refreshIssues();
   }
 
@@ -183,6 +209,16 @@ export class RadarService {
     this.status.set(status);
     this.viewRunId.set(null);
     await this.refreshSessions();
+    await this.refreshSources();
+    await this.refreshIssues();
+  }
+
+  async followNewest(): Promise<void> {
+    const status = await firstValueFrom(this.http.post<RunStatus>('/api/runs/follow', {}));
+    this.status.set(status);
+    this.viewRunId.set(null);
+    await this.refreshSessions();
+    await this.refreshSources();
     await this.refreshIssues();
   }
 

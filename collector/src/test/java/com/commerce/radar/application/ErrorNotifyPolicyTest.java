@@ -61,7 +61,8 @@ class ErrorNotifyPolicyTest {
                 true,
                 muted,
                 "older message",
-                Map.of()
+                Map.of(),
+                ""
         );
     }
 

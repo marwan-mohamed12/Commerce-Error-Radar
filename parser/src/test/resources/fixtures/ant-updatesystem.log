@@ -1,0 +1,7 @@
+     [java] INFO  [main] [DefaultSetup] updating system
+     [java] INFO  [main] [TypeSystemUpdater] updating type system
+     [java] ERROR [main] [TypeSystemUpdater] Update running system failed: type Product already has attribute code
+     [java] java.lang.IllegalStateException: type Product already has attribute code
+     [java] 	at de.hybris.platform.core.initialization.SystemUpdate.updateTypeSystem(SystemUpdate.java:210)
+     [java] 	at de.hybris.platform.core.initialization.SystemUpdate.updateRunningSystem(SystemUpdate.java:88)
+     [java] INFO  [main] [DefaultSetup] system update finished with errors

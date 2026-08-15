@@ -1,7 +1,7 @@
 import { Component, computed, input, output } from '@angular/core';
 import { Issue } from '../../../../core/models/radar.models';
 import { BusinessFilter, bizEntries, bizLabel, bizTone } from '../../../../core/utils/biz';
-import { KIND_ORDER, displayTitle, kindKey, kindLabel as labelForKind } from '../../../../core/utils/kind';
+import { KIND_ORDER, displayTitle, kindKey, kindLabel as labelForKind, logKindLabel } from '../../../../core/utils/kind';
 import { clockTime, relativeTime } from '../../../../core/utils/time';
 
 export interface IssueGroup {
@@ -74,6 +74,10 @@ export class IssueList {
 
   kindLabel(kind: string): string {
     return labelForKind(kind);
+  }
+
+  sourceLabel(kind: string): string {
+    return logKindLabel(kind);
   }
 
   kindTone(kind: string): string {

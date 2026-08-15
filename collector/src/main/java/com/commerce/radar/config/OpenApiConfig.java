@@ -14,7 +14,7 @@ public class OpenApiConfig {
                 .title("Commerce Error Radar")
                 .version("0.1.0")
                 .description("""
-                        Local collector API for the Hybris console inbox.
+                        Local collector API for the Hybris log inbox (console, catalina, wrapper, ant).
 
                         Fingerprints contain `@` (for example `NullPointerException@com.yourcompany.facades…`).
                         Use the `fingerprint` **query** parameter — never put it in the path.

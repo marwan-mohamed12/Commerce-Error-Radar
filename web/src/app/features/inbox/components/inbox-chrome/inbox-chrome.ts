@@ -1,11 +1,11 @@
 import { Component, OnDestroy, inject, output, signal } from '@angular/core';
-import { ISSUE_KINDS } from '../../../../core/models/radar.models';
+import { ISSUE_KINDS, LOG_SOURCES } from '../../../../core/models/radar.models';
 import { NotifyService } from '../../../../core/services/notify.service';
 import { RadarService } from '../../../../core/services/radar.service';
 import { ThemeService } from '../../../../core/services/theme.service';
 import { bizTone } from '../../../../core/utils/biz';
-import { kindLabel } from '../../../../core/utils/kind';
-import { fileName, sessionStamp } from '../../../../core/utils/time';
+import { kindLabel, logKindLabel } from '../../../../core/utils/kind';
+import { fileName, fileSize, relativeTime, sessionStamp } from '../../../../core/utils/time';
 
 @Component({
   selector: 'app-inbox-chrome',
@@ -17,6 +17,7 @@ export class InboxChrome implements OnDestroy {
   readonly theme = inject(ThemeService);
   readonly notify = inject(NotifyService);
   readonly kinds = ISSUE_KINDS;
+  readonly logSources = LOG_SOURCES;
   readonly search = signal('');
   readonly openPath = signal('');
   readonly replay = signal(true);
@@ -44,8 +45,18 @@ export class InboxChrome implements OnDestroy {
     this.radar.setFilter('kind', value);
   }
 
+  onLogKind(value: string): void {
+    this.radar.setLogKind(value);
+  }
+
   logName(): string {
-    return fileName(this.radar.status()?.logPath);
+    const kind = this.radar.filters().logKind;
+    if (!kind || kind === 'ALL') {
+      const count = this.radar.status()?.sources?.length ?? 0;
+      return count > 1 ? `All logs · ${count}` : fileName(this.radar.status()?.logPath);
+    }
+    const source = this.radar.status()?.sources?.find((item) => item.kind === kind);
+    return source?.fileName || logKindLabel(kind);
   }
 
   fileName(path: string | null | undefined): string {
@@ -76,6 +87,15 @@ export class InboxChrome implements OnDestroy {
     this.sessionChanged.emit();
   }
 
+  async toggleOpen(): Promise<void> {
+    const next = !this.showOpen();
+    this.showOpen.set(next);
+    this.showHistory.set(false);
+    if (next) {
+      await this.radar.refreshSources();
+    }
+  }
+
   async openSelected(): Promise<void> {
     const path = this.openPath().trim();
     if (!path) {
@@ -84,6 +104,34 @@ export class InboxChrome implements OnDestroy {
     await this.radar.openLog(path, this.replay());
     this.showOpen.set(false);
     this.sessionChanged.emit();
+  }
+
+  async openSource(path: string, replay: boolean): Promise<void> {
+    await this.radar.openLog(path, replay);
+    this.showOpen.set(false);
+    this.sessionChanged.emit();
+  }
+
+  async followNewest(): Promise<void> {
+    await this.radar.followNewest();
+    this.showOpen.set(false);
+    this.sessionChanged.emit();
+  }
+
+  selectedLogLabel(): string {
+    return logKindLabel(this.radar.filters().logKind);
+  }
+
+  sourceKind(kind: string): string {
+    return logKindLabel(kind);
+  }
+
+  sourceSize(bytes: number): string {
+    return fileSize(bytes);
+  }
+
+  sourceAge(iso: string | null): string {
+    return relativeTime(iso);
   }
 
   chipLabel(kind: string): string {

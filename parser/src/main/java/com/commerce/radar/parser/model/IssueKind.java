@@ -8,5 +8,9 @@ public enum IssueKind {
     SOLR,
     INTERCEPTOR,
     MODEL_SAVE,
+    INITIALIZE,
+    UPDATE,
+    ANT,
+    TOMCAT,
     OTHER
 }

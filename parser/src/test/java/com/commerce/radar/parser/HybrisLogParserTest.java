@@ -98,6 +98,69 @@ class HybrisLogParserTest {
     }
 
     @Test
+    void parsesAntJavacAndBuildFailed() {
+        List<ParsedEvent> events = parseFixture("ant-build-failed.log");
+        assertEquals(2, events.size());
+
+        ParsedEvent javac = events.get(0);
+        assertEquals("ERROR", javac.level());
+        assertEquals(IssueKind.ANT, javac.kind());
+        assertEquals("CompileError", javac.exceptionType());
+        assertTrue(javac.message().contains("DefaultCartFacade.java:42"));
+        assertTrue(javac.fingerprint().startsWith("CompileError@"));
+
+        ParsedEvent failed = events.get(1);
+        assertEquals("ERROR", failed.level());
+        assertEquals(IssueKind.ANT, failed.kind());
+        assertEquals("BuildFailed", failed.exceptionType());
+        assertTrue(failed.rawText().toLowerCase().contains("compile failed"));
+    }
+
+    @Test
+    void stripsAntJavaPrefixAndKeepsImpexKindOnInitialize() {
+        ParsedEvent event = onlyEvent("ant-initialize-impex.log");
+        assertEquals("ERROR", event.level());
+        assertEquals(IssueKind.IMPEX, event.kind());
+        assertEquals("ImpExException", event.exceptionType());
+        assertEquals("essential-data.impex", event.businessIds().get("impex"));
+        assertTrue(event.hasCustomFrame());
+        assertFalse(event.rawText().contains("[java] ERROR"));
+    }
+
+    @Test
+    void classifiesAntUpdateSystemFailure() {
+        ParsedEvent event = onlyEvent("ant-updatesystem.log");
+        assertEquals("ERROR", event.level());
+        assertEquals(IssueKind.UPDATE, event.kind());
+        assertEquals("IllegalStateException", event.exceptionType());
+        assertTrue(event.message().toLowerCase().contains("update running system"));
+    }
+
+    @Test
+    void parsesCatalinaSevereStartup() {
+        List<ParsedEvent> events = parseFixture("catalina-severe.log");
+        assertEquals(2, events.size());
+        assertEquals("ERROR", events.get(0).level());
+        assertEquals(IssueKind.TOMCAT, events.get(0).kind());
+        assertEquals("IllegalStateException", events.get(0).exceptionType());
+        assertTrue(events.get(0).message().toLowerCase().contains("listeners failed"));
+        assertEquals("ERROR", events.get(1).level());
+        assertEquals(IssueKind.TOMCAT, events.get(1).kind());
+        assertTrue(events.get(1).message().contains("/store"));
+    }
+
+    @Test
+    void parsesWrapperJvmExitWithoutHybrisPayload() {
+        List<ParsedEvent> events = parseFixture("wrapper-jvm-exit.log");
+        assertEquals(2, events.size());
+        assertEquals("ERROR", events.get(0).level());
+        assertEquals(IssueKind.TOMCAT, events.get(0).kind());
+        assertEquals("JvmExit", events.get(0).exceptionType());
+        assertTrue(events.get(0).message().toLowerCase().contains("jvm exited unexpectedly"));
+        assertTrue(events.get(1).message().toLowerCase().contains("while starting"));
+    }
+
+    @Test
     void timestampedHeadersAreAccepted() {
         HybrisLogParser parser = new HybrisLogParser("com.yourcompany");
         List<String> lines = List.of(

@@ -22,6 +22,7 @@ spring.sql.init.mode=never
 # LIVE when this is set. Leave empty to replay sample-logs (DEMO only).
 # Use forward slashes on Windows — a backslash in this file is an escape.
 # Env HYBRIS_HOME is used only when this value is blank.
+# Radar watches console, catalina, wrapper, ant, and localhost logs under this home.
 #
 # Example: D:/hybris
 radar.hybris-home=

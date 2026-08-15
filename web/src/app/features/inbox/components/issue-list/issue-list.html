@@ -1,4 +1,4 @@
-<nav class="flex min-h-full min-w-0 flex-col" aria-label="Console issues">
+<nav class="flex min-h-full min-w-0 flex-col" aria-label="Log issues">
   <header
     class="sticky top-0 z-20 flex items-center justify-between gap-3 border-b border-rule bg-canvas-2 px-3 py-2 sm:px-4"
   >
@@ -76,6 +76,12 @@
                   <span class="kind-pip" aria-hidden="true"></span>
                   {{ kindLabel(issue.kind) }}
                 </span>
+                @if (issue.logKind) {
+                  <span class="kind-chip" [attr.data-kind]="issue.logKind">
+                    <span class="kind-pip" aria-hidden="true"></span>
+                    {{ sourceLabel(issue.logKind) }}
+                  </span>
+                }
                 @if (issue.hasCustomFrame) {
                   <span class="text-brass">mine</span>
                 }
@@ -122,7 +128,7 @@
           } @else if (viewingHistory()) {
             Quiet that session
           } @else {
-            Quiet this session
+            Quiet
           }
         </p>
         <p class="mx-auto mt-2 max-w-[28ch] text-sm leading-relaxed text-mute">
@@ -131,7 +137,7 @@
           } @else if (viewingHistory()) {
             This older run has no ERROR or WARN that match the filters.
           } @else {
-            New ERROR and WARN stay here until you restart Radar. Earlier runs are in History.
+            New ERROR and WARN from console, wrapper, ant, catalina, and localhost stay here. Pick a file above to narrow the list.
           }
         </p>
       </div>

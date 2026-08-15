@@ -93,4 +93,19 @@ class LogSourceResolverTest {
         assertTrue(decision.live());
         assertEquals(live, decision.file());
     }
+
+    @Test
+    void setHomeTailsAntLogWhenThatIsTheOnlyFile() throws Exception {
+        Path home = temp.resolve("hybris");
+        Path log = home.resolve("log");
+        Files.createDirectories(log);
+        Path ant = log.resolve("ant.log");
+        Files.writeString(ant, "BUILD FAILED");
+
+        LogSourceResolver.Decision decision = LogSourceResolver.resolve(home, List.of());
+
+        assertTrue(decision.live());
+        assertEquals(ant, decision.file());
+        assertTrue(decision.message().startsWith("LIVE"));
+    }
 }

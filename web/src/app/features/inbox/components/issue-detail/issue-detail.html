@@ -33,6 +33,12 @@
           <span class="kind-pip" aria-hidden="true"></span>
           {{ kindLabel(d.issue.kind) }}
         </span>
+        @if (d.issue.logKind) {
+          <span class="kind-chip" [attr.data-kind]="d.issue.logKind" [title]="d.issue.logPath || ''">
+            <span class="kind-pip" aria-hidden="true"></span>
+            {{ sourceLabel(d.issue.logKind) }}
+          </span>
+        }
         @if (d.issue.hasCustomFrame) {
           <span class="text-brass">your package</span>
         }

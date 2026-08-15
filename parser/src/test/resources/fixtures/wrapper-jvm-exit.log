@@ -1,0 +1,5 @@
+STATUS | wrapper  | 2026/08/10 00:06:15.353 | --> Wrapper Started as Console
+INFO   | wrapper  | 2026/08/10 00:06:16.100 | Launching a JVM...
+ERROR  | wrapper  | 2026/08/10 00:06:18.000 | JVM exited unexpectedly.
+ERROR  | wrapper  | 2026/08/10 00:06:18.100 | JVM exited while starting.  See the wrapper.log for details.
+STATUS | wrapper  | 2026/08/10 00:06:18.200 | <-- Wrapper Stopped

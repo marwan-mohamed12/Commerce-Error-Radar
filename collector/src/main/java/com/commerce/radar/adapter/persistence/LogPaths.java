@@ -3,7 +3,7 @@ package com.commerce.radar.adapter.persistence;
 import java.nio.file.Path;
 import java.util.Locale;
 
-/** One console log file is one session — compare paths in a stable form. */
+/** One Hybris log file is one session — compare paths in a stable form. */
 public final class LogPaths {
 
     private LogPaths() {

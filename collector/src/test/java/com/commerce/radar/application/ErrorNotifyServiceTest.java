@@ -87,7 +87,7 @@ class ErrorNotifyServiceTest {
 
     private static StoredIssue issue(boolean muted) {
         Instant now = Instant.parse("2026-08-14T12:00:00Z");
-        return new StoredIssue("fp", "OCC NPE", "ERROR", "OCC", 1, now, now, true, muted, "msg", Map.of());
+        return new StoredIssue("fp", "OCC NPE", "ERROR", "OCC", 1, now, now, true, muted, "msg", Map.of(), "");
     }
 
     private static StoredEvent event(String level) {
