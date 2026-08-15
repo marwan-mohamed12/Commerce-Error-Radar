@@ -4,7 +4,7 @@
       <img src="favicon.svg" width="28" height="28" alt="" class="radar-mark" />
       <div class="min-w-0">
         <p class="font-display text-[1.25rem] leading-none font-semibold tracking-[-0.03em] text-copy sm:text-[1.45rem]">Radar</p>
-        <p class="mt-1 hidden font-mono text-[0.65rem] uppercase tracking-[0.14em] text-mute sm:block">Hybris console</p>
+        <p class="mt-1 hidden font-mono text-[0.65rem] uppercase tracking-[0.14em] text-mute sm:block">Hybris logs</p>
       </div>
     </div>
 
@@ -16,6 +16,10 @@
           aria-hidden="true"
         ></span>
         {{ radar.status()?.mode || 'IDLE' }}
+      </span>
+      <span class="kind-chip hidden sm:inline-flex" [attr.data-kind]="radar.filters().logKind || 'ALL'">
+        <span class="kind-pip" aria-hidden="true"></span>
+        {{ radar.filters().logKind === 'ALL' ? 'All' : selectedLogLabel() }}
       </span>
       <span class="min-w-0 max-w-full truncate font-mono text-[0.78rem]" [title]="radar.status()?.logPath || ''">
         {{ logName() }}
@@ -91,7 +95,7 @@
         aria-label="Open log file"
         title="Open log"
         [attr.aria-expanded]="showOpen()"
-        (click)="showOpen.set(!showOpen()); showHistory.set(false)"
+        (click)="toggleOpen()"
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.5L10 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z"></path>
@@ -103,6 +107,22 @@
   <div
     class="flex min-w-0 flex-wrap items-center gap-2 border-t border-rule px-3 py-2 sm:px-5 lg:px-6"
   >
+    <div class="inline-flex flex-wrap rounded-lg border border-rule p-0.5" role="group" aria-label="Log file">
+      @for (source of logSources; track source.id) {
+        <button
+          type="button"
+          class="rounded-md px-3 py-1.5 font-mono text-[0.75rem] font-medium"
+          [class.bg-raised]="radar.filters().logKind === source.id"
+          [class.text-copy]="radar.filters().logKind === source.id"
+          [class.text-mute]="radar.filters().logKind !== source.id"
+          [attr.aria-pressed]="radar.filters().logKind === source.id"
+          (click)="onLogKind(source.id)"
+        >
+          {{ source.label }}
+        </button>
+      }
+    </div>
+
     <div class="inline-flex rounded-lg border border-rule p-0.5" role="group" aria-label="Level">
       @for (level of ['ALL', 'ERROR', 'WARN']; track level) {
         <button
@@ -158,7 +178,7 @@
 
 @if (radar.viewingHistory()) {
   <div class="flex flex-wrap items-center gap-3 border-b border-honey/30 bg-honey/10 px-4 py-2 text-sm text-copy sm:px-6">
-    <span>Viewing an older session. The live console is still collecting.</span>
+    <span>Viewing an older session. The live log is still collecting.</span>
     <button type="button" class="font-medium text-brass hover:underline" (click)="backToLive()">
       Back to this session
     </button>
@@ -188,7 +208,7 @@
             </span>
             <span class="min-w-0 flex-1 truncate font-mono text-[0.78rem] text-copy">
               {{ sessionStamp(session.startedAt) }}
-              <span class="text-mute"> · {{ fileName(session.logPath) }}</span>
+              <span class="text-mute"> · {{ sourceKind(session.logKind) }} · {{ fileName(session.logPath) }}</span>
             </span>
             <span class="shrink-0 font-mono text-[0.68rem] tabular-nums text-quiet">
               {{ session.issueCount }}
@@ -203,30 +223,74 @@
 }
 
 @if (showOpen()) {
-  <form
-    class="flex flex-col gap-3 border-b border-rule bg-surface px-4 py-3 sm:flex-row sm:items-center sm:px-6"
-    (submit)="$event.preventDefault(); openSelected()"
-  >
-    <label class="sr-only" for="open-path">Log file path</label>
-    <input
-      id="open-path"
-      type="text"
-      class="min-w-0 flex-1 rounded-lg border border-rule bg-canvas px-3 py-2 text-sm text-copy placeholder:text-mute"
-      placeholder="C:\hybris\hybris\log\tomcat\console-20260809.log"
-      [value]="openPath()"
-      (input)="openPath.set($any($event.target).value)"
-    />
-    <label class="inline-flex items-center gap-2 text-[0.75rem] text-quiet">
+  <div class="border-b border-rule bg-surface">
+    <div class="flex flex-wrap items-baseline justify-between gap-3 px-4 py-2 sm:px-6">
+      <h2 class="font-mono text-[0.65rem] tracking-[0.14em] text-mute uppercase">Hybris logs</h2>
+      <button
+        type="button"
+        class="font-mono text-[0.65rem] tracking-[0.08em] text-brass uppercase hover:underline"
+        (click)="followNewest()"
+      >
+        Follow newest
+      </button>
+    </div>
+    <ul class="max-h-56 overflow-y-auto">
+      @for (source of radar.sources(); track source.path) {
+        <li class="flex min-w-0 items-center gap-3 px-4 py-2 sm:px-6" [class.bg-raised]="source.current">
+          <button
+            type="button"
+            class="flex min-w-0 flex-1 items-baseline gap-3 text-left hover:text-brass"
+            [title]="source.path"
+            (click)="openSource(source.path, true)"
+          >
+            <span class="kind-chip min-w-20 shrink-0 justify-center" [attr.data-kind]="source.kind">
+              <span class="kind-pip" aria-hidden="true"></span>
+              {{ sourceKind(source.kind) }}
+            </span>
+            <span class="min-w-0 flex-1 truncate font-mono text-[0.78rem] text-copy">
+              {{ source.fileName }}
+              <span class="text-mute"> · {{ sourceSize(source.sizeBytes) }} · {{ sourceAge(source.lastModified) }}</span>
+            </span>
+          </button>
+          <button
+            type="button"
+            class="shrink-0 font-mono text-[0.65rem] tracking-[0.08em] text-quiet uppercase hover:text-brass"
+            (click)="openSource(source.path, false)"
+          >
+            Tail
+          </button>
+        </li>
+      } @empty {
+        <li class="px-4 py-4 text-sm text-mute sm:px-6">
+          No console, catalina, wrapper, or ant logs under Hybris home yet.
+        </li>
+      }
+    </ul>
+    <form
+      class="flex flex-col gap-3 border-t border-rule px-4 py-3 sm:flex-row sm:items-center sm:px-6"
+      (submit)="$event.preventDefault(); openSelected()"
+    >
+      <label class="sr-only" for="open-path">Log file path</label>
       <input
-        type="checkbox"
-        class="size-3.5 accent-brass"
-        [checked]="replay()"
-        (change)="replay.set($any($event.target).checked)"
+        id="open-path"
+        type="text"
+        class="min-w-0 flex-1 rounded-lg border border-rule bg-canvas px-3 py-2 text-sm text-copy placeholder:text-mute"
+        placeholder="C:\hybris\hybris\log\tomcat\console-20260809.log"
+        [value]="openPath()"
+        (input)="openPath.set($any($event.target).value)"
       />
-      Replay whole file
-    </label>
-    <button type="submit" class="rounded-lg bg-brass px-3 py-2 text-sm font-medium text-canvas">
-      Tail this file
-    </button>
-  </form>
+      <label class="inline-flex items-center gap-2 text-[0.75rem] text-quiet">
+        <input
+          type="checkbox"
+          class="size-3.5 accent-brass"
+          [checked]="replay()"
+          (change)="replay.set($any($event.target).checked)"
+        />
+        Replay whole file
+      </label>
+      <button type="submit" class="rounded-lg bg-brass px-3 py-2 text-sm font-medium text-canvas">
+        Tail this file
+      </button>
+    </form>
+  </div>
 }

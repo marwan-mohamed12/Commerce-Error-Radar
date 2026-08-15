@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Streaming multi-line parser for Hybris / Spring console logs.
+ * Streaming multi-line parser for Hybris / Spring / Ant / Catalina / wrapper logs.
  *
  * <p>Rules (stable):
  * <ul>
@@ -39,8 +39,8 @@ public final class HybrisLogParser {
      * Feed one line. Returns a closed event when the previous event is finished.
      */
     public Optional<ParsedEvent> accept(String rawLine) {
-        String line = LogLine.unwrapWrapper(rawLine == null ? "" : rawLine.stripTrailing());
-        Optional<LogLine> header = LogLine.parseHeader(line);
+        String raw = rawLine == null ? "" : rawLine.stripTrailing();
+        Optional<LogLine> header = LogLine.parseHeader(raw);
 
         if (header.isPresent()) {
             LogLine h = header.get();
@@ -52,7 +52,7 @@ public final class HybrisLogParser {
         }
 
         if (current != null) {
-            current.append(line);
+            current.append(LogLine.normalizeLine(raw));
             return Optional.empty();
         }
         return Optional.empty();
@@ -118,7 +118,19 @@ public final class HybrisLogParser {
             if (exceptionType.isBlank()) {
                 exceptionType = LogLine.extractExceptionType(header.message() + "\n" + rawText);
             }
+            if (exceptionType.isBlank()) {
+                exceptionType = inferSyntheticType(header);
+            }
             StackFingerprint.Result fp = new StackFingerprint(customPrefix).compute(exceptionType, stackText);
+            if (!fp.hasCustomFrame() && "javac".equals(header.logger()) && !header.message().isBlank()) {
+                String loc = header.message();
+                int cut = loc.indexOf(": ");
+                fp = new StackFingerprint.Result(
+                        "CompileError@" + (cut > 0 ? loc.substring(0, cut) : loc),
+                        false,
+                        null
+                );
+            }
             Map<String, String> ids = BusinessIdExtractor.extract(rawText);
             IssueKind kind = IssueClassifier.classify(
                     header.logger(), header.thread(), header.message(), exceptionType, rawText);
@@ -136,6 +148,22 @@ public final class HybrisLogParser {
                     kind,
                     ids
             );
+        }
+
+        private static String inferSyntheticType(LogLine header) {
+            String logger = header.logger() == null ? "" : header.logger();
+            String message = header.message() == null ? "" : header.message();
+            String lower = (logger + " " + message).toLowerCase(java.util.Locale.ROOT);
+            if ("javac".equals(logger) || lower.contains("cannot find symbol") || lower.contains(": error:")) {
+                return "CompileError";
+            }
+            if ("ant".equals(logger) || lower.contains("build failed") || lower.contains("compile failed")) {
+                return "BuildFailed";
+            }
+            if (lower.contains("jvm exited")) {
+                return "JvmExit";
+            }
+            return "";
         }
     }
 }

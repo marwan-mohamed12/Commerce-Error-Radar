@@ -14,6 +14,10 @@ public record StoredIssue(
         boolean hasCustomFrame,
         boolean muted,
         String lastMessage,
-        Map<String, String> lastBusinessIds
+        Map<String, String> lastBusinessIds,
+        String lastLogPath
 ) {
+    public StoredIssue {
+        lastLogPath = lastLogPath == null ? "" : lastLogPath;
+    }
 }

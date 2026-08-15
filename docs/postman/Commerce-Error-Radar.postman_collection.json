@@ -20,7 +20,7 @@
             "method": "GET",
             "header": [],
             "url": "{{baseUrl}}/api/runs",
-            "description": "One row per `console-*.log` file."
+            "description": "One row per Hybris log file Radar has opened."
           }
         },
         {
@@ -57,7 +57,29 @@
               "raw": "{\n  \"path\": \"D:/hybris/hybris/log/tomcat/console-20260809.log\",\n  \"replay\": true\n}\n"
             },
             "url": "{{baseUrl}}/api/runs/open",
-            "description": "Point the tailer at a console file. `replay: true` reads from the start. `replay: false` tails from EOF. Change `path` to a file on your machine."
+            "description": "Point the tailer at a Hybris log (console, catalina, wrapper, or ant). `replay: true` reads from the start. `replay: false` tails from EOF. Change `path` to a file on your machine."
+          }
+        },
+        {
+          "name": "List log sources",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/runs/sources",
+            "description": "Discovered console, catalina, wrapper, ant, and localhost files under hybris-home."
+          }
+        },
+        {
+          "name": "Follow newest log",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": "{{baseUrl}}/api/runs/follow",
+            "description": "Unpin the current file and tail whichever Hybris log was written last."
           }
         }
       ]
@@ -86,7 +108,7 @@
             "method": "GET",
             "header": [],
             "url": "{{baseUrl}}/api/issues?runId={{runId}}&includeMuted=false",
-            "description": "Issues in one session. Optional query params: `level` (ERROR|WARN), `kind` (OCC, CRONJOB, IMPEX, FLEXIBLE_SEARCH, SOLR, INTERCEPTOR, MODEL_SAVE, OTHER), `q`, `bizKey` + `bizValue` (order, product, user, cronjob, impex, catalogVersion). Empty `runId` uses the current run. Saves `fingerprint` from the first row."
+            "description": "Issues in one session or across live logs. Optional query params: `logKind` (ALL|CONSOLE|WRAPPER|ANT|CATALINA|LOCALHOST), `level` (ERROR|WARN), `kind` (OCC, CRONJOB, IMPEX, …), `q`, `bizKey` + `bizValue`. Empty `runId` uses live sources. Saves `fingerprint` from the first row."
           }
         },
         {

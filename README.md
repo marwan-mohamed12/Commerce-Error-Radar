@@ -2,16 +2,20 @@
 
 Local **ERROR / WARN inbox** for **SAP Commerce (Hybris) + Spring** on Windows.
 
-You start `hybrisserver.bat` the way you always do. Radar tails today’s Tomcat console log, keeps only `ERROR` / `WARN` / `FATAL`, groups repeats by fingerprint, and shows them in a browser UI that does not scroll away with the log.
+You start `hybrisserver.bat` or Ant the way you always do. Radar tails the Hybris log that was written last — console, Catalina, wrapper, or `ant.log` — keeps only `ERROR` / `WARN` / `FATAL`, groups repeats by fingerprint, and shows them in a browser UI that does not scroll away with the log.
 
-It is a **local** tool. It never starts or wraps `hybrisserver.bat` — it only reads the console log file.
+It is a **local** tool. It never starts or wraps `hybrisserver.bat` or Ant — it only reads the log files.
 
 ```text
-hybrisserver.bat
+hybrisserver.bat / ant initialize / ant updatesystem / ant clean all
         │
         ▼
-<HYBRIS_HOME>\hybris\log\tomcat\console-YYYYMMDD.log
-        │  tail from EOF  (never load a multi-GB file)
+<HYBRIS_HOME>\hybris\log\
+        tomcat\console-YYYYMMDD.log
+        tomcat\catalina*.log
+        tomcat\wrapper.log
+        ant.log
+        │  tail newest from EOF  (never load a multi-GB file)
         ▼
 Spring Boot collector :8088  →  SQLite  →  Angular UI
 ```
@@ -54,15 +58,15 @@ Replace each placeholder SVG with a PNG of the same name (see [`docs/screenshots
 <p align="center">
   <img src="docs/screenshots/history.svg" alt="Session history. Replace with docs/screenshots/history.png" width="920">
 </p>
-<p align="center"><sub>History · one console file is one session</sub></p>
+<p align="center"><sub>History · one log file is one session</sub></p>
 
 ---
 
 ## Why it exists
 
-Hybris console logs are huge, noisy, and gone the moment the terminal scrolls. You cannot grep a 4 GB `console-YYYYMMDD.log` every time a CronJob fails, and a Solr ping WARN should not hide the NPE that comes after it.
+Hybris logs are huge, noisy, and gone the moment the terminal scrolls. You cannot grep a 4 GB `console-YYYYMMDD.log` every time a CronJob fails, and a Solr ping WARN should not hide the NPE that comes after it. `ant initialize` and `wrapper.log` are the same problem in a different file.
 
-Radar is the night-shift inbox for that file:
+Radar is the night-shift inbox for those files:
 
 - **Live.** Tails from EOF. Polls file length. Does not read the whole log into memory.
 - **Grouped.** The same OCC NPE is one issue with a count, not 47 rows.
@@ -74,17 +78,17 @@ Radar is the night-shift inbox for that file:
 ## What you get
 
 - Live ERROR / WARN / FATAL for the current log-file session
-- One `console-*.log` file = one session. Restarting Radar on the same path resumes it. History lists other files
+- One log file = one session (console, catalina, wrapper, or ant). Restarting Radar on the same path resumes it. History lists other files
 - Full Java stack plus about 30 preceding log lines
 - Duplicate grouping by fingerprint
 - Extracted business ids when they appear: order, product, user, CronJob, catalog version, `.impex`
 - Click a business-id chip to see every issue in this session that mentions that id
-- Classifiers: OCC, CronJob, ImpEx, FlexibleSearch, Solr, Interceptor, Model save, Other
+- Classifiers: OCC, CronJob, ImpEx, FlexibleSearch, Solr, Interceptor, Model save, Initialize, Update, Ant, Tomcat, Other
 - Kind-colored chips and filters (ERROR / WARN, kind, search)
 - Collapse Hybris / framework frames; highlight frames under your package prefix
 - Copy stack, copy Markdown, copy a Teams-ready paste
 - Mute a fingerprint (stays quiet across sessions)
-- Open or replay an older `console-*.log`
+- Open or replay an older console / catalina / wrapper / ant log from the folder picker
 - Optional Windows toast + favicon badge when a new ERROR arrives while Radar is in the background
 - Dark theme (night Hybris boot) and light theme (cool printout paper)
 - Log rotation: a newer `console-YYYYMMDD.log` is picked up without restarting the collector
@@ -137,7 +141,7 @@ radar.hybris-home=
 
 The collector replays `sample-logs/console-20260809.log` so the inbox fills on its own. Skip step 3b.
 
-### 3b. LIVE — tail your Hybris console
+### 3b. LIVE — tail your Hybris logs
 
 Set at least these two lines in `application.properties`:
 
@@ -148,7 +152,7 @@ radar.custom-package-prefix=com.yourcompany
 
 | Key | What to put |
 |---|---|
-| `radar.hybris-home` | The Hybris home folder — the one that contains `hybris\log\tomcat` (or `log\tomcat`) |
+| `radar.hybris-home` | The Hybris home folder — the one that contains `hybris\log` (or `log\tomcat`) |
 | `radar.custom-package-prefix` | The Java package of **your** custom code (bin/custom), not `de.hybris` |
 
 Use **forward slashes** (`D:/hybris`). A backslash in this file is an escape and will break the path.
@@ -169,7 +173,7 @@ hybrisserver.bat
 
 Radar does not start or stop that process. It only tails the log.
 
-If `radar.hybris-home` is set, sample logs are never used. Radar waits for `console-*.log`.
+If `radar.hybris-home` is set, sample logs are never used. Radar waits for a Hybris log (console, catalina, wrapper, or ant).
 
 ### 4. Start Radar
 
@@ -215,7 +219,7 @@ The UI proxies `/api` to the collector on **8088**. If the inbox says the collec
 | Symptom | Fix |
 |---|---|
 | Maven uses Java 8 | Set `JAVA_HOME` to JDK 21, then run Maven again |
-| Inbox is empty in LIVE | Check `radar.hybris-home` points at the folder that contains `hybris\log\tomcat`, and that `console-*.log` exists |
+| Inbox is empty in LIVE | Check `radar.hybris-home` points at the folder that contains `hybris\log`, and that a console / catalina / wrapper / ant log exists |
 | You wanted DEMO but see no sample issues | `radar.hybris-home` must be **empty**. An empty CLI flag `--radar.hybris-home=` also forces DEMO; omit the flag if you want the file value |
 | Browser opened `4200` and it is blank | Use http://localhost:4500 |
 | `spring-boot:run` does nothing | You ran it from the parent POM. Use `mvn -pl collector -am spring-boot:run` |
@@ -226,6 +230,7 @@ The UI proxies `/api` to the collector on **8088**. If the inbox says the collec
 
 | Action | Where |
 |---|---|
+| Filter by log file | All / console / wrapper.log / ant.log / catalina / localhost |
 | Filter ERROR / WARN | Level buttons under the header |
 | Filter by kind | OCC, CronJob, ImpEx, … chips |
 | Search class or message | Header search |
@@ -233,7 +238,7 @@ The UI proxies `/api` to the collector on **8088**. If the inbox says the collec
 | Collapse the issue list | The minimize control on the list (`[` / `]` also toggle the rail) |
 | Copy stack / Markdown / Teams | Icon buttons on the detail header |
 | Mute this fingerprint | Speaker icon. Muted issues stay quiet, including notifications |
-| Replay an old log | Folder icon → path + “Replay whole file” |
+| Replay an old log | Folder icon → pick a discovered file, or paste a path + “Replay whole file” |
 | Other sessions | Clock icon (History) |
 | ERROR notifications | Bell icon. Off by default. See [Notifications](#notifications) |
 | Dark / light | Theme icon. Stored in `localStorage` as `radar-theme` |
@@ -244,16 +249,16 @@ The list is one session at a time. Live SSE still runs while you browse History.
 
 ## How ingest works
 
-1. Resolve the newest `console-*.log` under `<hybris-home>\hybris\log\tomcat` (or `\log\tomcat`).
-2. **Live:** start at EOF. **Demo / replay / newly rotated file:** start at the beginning.
+1. Resolve the newest file of each kind under `<hybris-home>\hybris\log` (console, wrapper, ant, catalina, localhost — not access logs).
+2. **Live:** tail all of those files from EOF. The inbox **All / console / wrapper.log / ant.log / catalina / localhost** filter shows errors from one file or from every file. **Demo / replay / newly rotated file:** start at the beginning.
 3. Poll file length about every 500 ms. Never slurp the whole file.
 4. Keep a ring buffer of recent lines (~100). When an ERROR / WARN closes, attach ~30 lines of preceding context.
 5. Persist **only** WARN / ERROR / FATAL. INFO and DEBUG stay in the ring buffer.
-6. On a newer `console-YYYYMMDD.log`, switch without restarting the collector. That file is a **new session**.
+6. When a kind rotates (new `console-YYYYMMDD.log`), switch that kind without restarting. That file is a **new session**. Other kinds keep tailing.
 
 ### Parser
 
-Hybris 2211 console lines often have Tanuki wrapper columns (`INFO | jvm 1 | main | ts |`). Those are stripped before parsing.
+Hybris 2211 console lines often have Tanuki wrapper columns (`INFO | jvm 1 | main | ts |`). Those are stripped before parsing. `ant.log` lines lose the `[java]` / `[javac]` prefix. Catalina JULI `SEVERE` / `WARNING` map to ERROR / WARN.
 
 | Input | Behavior |
 |---|---|
@@ -296,7 +301,7 @@ copy collector\src\main\resources\application.properties.example collector\src\m
 
 | Key | Meaning | Example |
 |---|---|---|
-| `radar.hybris-home` | Hybris home (folder that contains `hybris/log/tomcat` or `log/tomcat`). Empty → DEMO | `D:/hybris` |
+| `radar.hybris-home` | Hybris home (folder that contains `hybris/log` or `log/tomcat`). Empty → DEMO | `D:/hybris` |
 | `radar.custom-package-prefix` | First stack frame with this prefix becomes the fingerprint | `com.yourcompany` |
 | `radar.tail-from-end` | `true` = live from EOF. `false` = replay the current file | `true` |
 | `radar.notify-on-error` | Default for the header bell (UI override is stored in SQLite) | `false` |
@@ -319,7 +324,7 @@ PowerShell: quote the `-D` flags. Do not use `&&` if the shell rejects it — us
 
 ## Sessions and storage
 
-- **One console file = one session.** Reopening the same path resumes that run.
+- **One log file = one session.** Reopening the same path resumes that run.
 - A new day’s file, or a restart that rotates the log, starts a new session.
 - `issues` are keyed by fingerprint (counts and mute are global). `events` belong to a `run_id`. The list is filtered to the session you are viewing.
 - Switching back to LIVE after a DEMO replay drops leftover DEMO rows so sample issues do not stick on the live list.
@@ -369,9 +374,11 @@ The UI uses the same routes. Useful if you want to curl the collector directly.
 
 | Method | Path | Purpose |
 |---|---|---|
-| `GET` | `/api/runs` | Sessions (one per console file) |
+| `GET` | `/api/runs` | Sessions (one per log file) |
 | `GET` | `/api/runs/current` | Tail status |
+| `GET` | `/api/runs/sources` | Discovered console / catalina / wrapper / ant / localhost files |
 | `POST` | `/api/runs/open` | Open a log (`path`, `replay`) |
+| `POST` | `/api/runs/follow` | Unpin and tail the newest Hybris log |
 | `GET` | `/api/issues` | Issues for a session (`runId`, `level`, `kind`, `q`, `bizKey`, `bizValue`, `includeMuted`) |
 | `GET` | `/api/issues/one?fingerprint=` | Issue + events (query param — fingerprints contain `@`) |
 | `POST` | `/api/issues/mute?fingerprint=` | Mute / unmute |

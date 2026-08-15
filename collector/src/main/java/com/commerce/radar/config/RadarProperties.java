@@ -10,7 +10,7 @@ import java.util.List;
 public class RadarProperties {
 
     /**
-     * Hybris platform home (the folder that contains {@code hybris/log/tomcat}
+     * Hybris platform home (the folder that contains {@code hybris/log}
      * or {@code log/tomcat}). Blank / unset → DEMO sample logs.
      * Accepts {@code --radar.hybris-home} or env {@code HYBRIS_HOME}.
      * Stored as a string so an empty value does not become a Path, and so

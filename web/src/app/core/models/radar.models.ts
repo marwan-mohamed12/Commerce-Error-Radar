@@ -14,6 +14,8 @@ export interface Issue {
   muted: boolean;
   lastMessage: string;
   lastBusinessIds: BusinessIds;
+  logKind?: string;
+  logPath?: string;
 }
 
 export interface EventItem {
@@ -42,6 +44,8 @@ export interface RunStatus {
   id: number;
   hybrisHome: string;
   logPath: string;
+  logKind: string;
+  pinned: boolean;
   startedAt: string | null;
   lastLineAt: string | null;
   live: boolean;
@@ -51,11 +55,21 @@ export interface RunStatus {
   lastLine: string;
   message: string;
   customPackagePrefix: string;
+  sources: ActiveSource[];
+  activeRunIds: number[];
+}
+
+export interface ActiveSource {
+  runId: number;
+  kind: string;
+  path: string;
+  fileName: string;
 }
 
 export interface Filters {
   level: 'ALL' | 'ERROR' | 'WARN';
   kind: string;
+  logKind: string;
   q: string;
   bizKey: string;
   bizValue: string;
@@ -80,6 +94,7 @@ export interface RunSession {
   id: number;
   hybrisHome: string;
   logPath: string;
+  logKind: string;
   startedAt: string | null;
   endedAt: string | null;
   mode: string;
@@ -87,6 +102,24 @@ export interface RunSession {
   issueCount: number;
   current: boolean;
 }
+
+export interface LogSource {
+  kind: string;
+  path: string;
+  fileName: string;
+  sizeBytes: number;
+  lastModified: string | null;
+  current: boolean;
+}
+
+export const LOG_SOURCES = [
+  { id: 'ALL', label: 'All' },
+  { id: 'CONSOLE', label: 'console' },
+  { id: 'WRAPPER', label: 'wrapper.log' },
+  { id: 'ANT', label: 'ant.log' },
+  { id: 'CATALINA', label: 'catalina' },
+  { id: 'LOCALHOST', label: 'localhost' },
+] as const;
 
 export const ISSUE_KINDS = [
   'ALL',
@@ -97,5 +130,9 @@ export const ISSUE_KINDS = [
   'SOLR',
   'INTERCEPTOR',
   'MODEL_SAVE',
+  'INITIALIZE',
+  'UPDATE',
+  'ANT',
+  'TOMCAT',
   'OTHER',
 ] as const;

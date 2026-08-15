@@ -1,6 +1,7 @@
 package com.commerce.radar.adapter.tail;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 public final class TailStatus {
@@ -8,6 +9,8 @@ public final class TailStatus {
     private volatile long runId;
     private volatile String hybrisHome = "";
     private volatile String logPath = "";
+    private volatile String logKind = "";
+    private volatile boolean pinned;
     private volatile String mode = "IDLE";
     private volatile Instant startedAt;
     private volatile Instant lastLineAt;
@@ -15,7 +18,12 @@ public final class TailStatus {
     private volatile String lastLine = "";
     private final AtomicLong linesRead = new AtomicLong();
     private final AtomicLong eventsPersisted = new AtomicLong();
-    private volatile String message = "Waiting for a console log…";
+    private volatile String message = "Waiting for a Hybris log…";
+    private volatile List<ActiveSource> sources = List.of();
+    private volatile List<Long> activeRunIds = List.of();
+
+    public record ActiveSource(long runId, String kind, String path, String fileName) {
+    }
 
     public long getRunId() {
         return runId;
@@ -39,6 +47,22 @@ public final class TailStatus {
 
     public void setLogPath(String logPath) {
         this.logPath = logPath == null ? "" : logPath;
+    }
+
+    public String getLogKind() {
+        return logKind;
+    }
+
+    public void setLogKind(String logKind) {
+        this.logKind = logKind == null ? "" : logKind;
+    }
+
+    public boolean isPinned() {
+        return pinned;
+    }
+
+    public void setPinned(boolean pinned) {
+        this.pinned = pinned;
     }
 
     public String getMode() {
@@ -103,5 +127,21 @@ public final class TailStatus {
 
     public void setMessage(String message) {
         this.message = message == null ? "" : message;
+    }
+
+    public List<ActiveSource> getSources() {
+        return sources;
+    }
+
+    public void setSources(List<ActiveSource> sources) {
+        this.sources = sources == null ? List.of() : List.copyOf(sources);
+    }
+
+    public List<Long> getActiveRunIds() {
+        return activeRunIds;
+    }
+
+    public void setActiveRunIds(List<Long> activeRunIds) {
+        this.activeRunIds = activeRunIds == null ? List.of() : List.copyOf(activeRunIds);
     }
 }

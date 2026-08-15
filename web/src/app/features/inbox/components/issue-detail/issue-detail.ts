@@ -1,7 +1,7 @@
 import { Component, computed, effect, input, output, signal } from '@angular/core';
 import { IssueDetail } from '../../../../core/models/radar.models';
 import { BusinessFilter, bizEntries, bizFilterTitle, bizLabel, bizTone } from '../../../../core/utils/biz';
-import { displayTitle, kindKey, kindLabel as labelForKind } from '../../../../core/utils/kind';
+import { displayTitle, kindKey, kindLabel as labelForKind, logKindLabel } from '../../../../core/utils/kind';
 import { copyHtml, issueMarkdown, issueTeams } from '../../../../core/utils/share';
 import { StackBlock, collapseFramework, parseStack, shortPackage } from '../../../../core/utils/stack';
 import { clockTime, relativeTime } from '../../../../core/utils/time';
@@ -87,6 +87,10 @@ export class IssueDetailView {
 
   kindLabel(kind: string): string {
     return labelForKind(kind);
+  }
+
+  sourceLabel(kind: string): string {
+    return logKindLabel(kind);
   }
 
   kindTone(kind: string): string {

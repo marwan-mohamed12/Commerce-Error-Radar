@@ -50,7 +50,7 @@ public class RadarRepository {
     }
 
     /**
-     * One console file is one session. Reopening the same path resumes the existing run
+     * One Hybris log file is one session. Reopening the same path resumes the existing run
      * and folds any duplicate run rows for that file into it.
      */
     public StoredRun findOrOpenRun(String hybrisHome, Path logFile, String mode) {
@@ -221,25 +221,17 @@ public class RadarRepository {
     }
 
     public Optional<StoredIssue> findIssueInRun(String fingerprint, long runId) {
-        return jdbc.query(
-                """
-                SELECT
-                    i.fingerprint, i.title, i.level, i.kind, COUNT(e.id) AS count,
-                    MIN(e.ts) AS first_seen, MAX(e.ts) AS last_seen,
-                    i.has_custom_frame, i.muted,
-                    (SELECT e2.message FROM events e2
-                     WHERE e2.run_id = e.run_id AND e2.fingerprint = i.fingerprint
-                     ORDER BY e2.id DESC LIMIT 1) AS last_message,
-                    i.last_business_ids_json
-                FROM events e
-                JOIN issues i ON i.fingerprint = e.fingerprint
-                WHERE e.run_id = ? AND i.fingerprint = ?
-                GROUP BY i.fingerprint
-                """,
-                issueMapper(),
-                runId,
-                fingerprint
-        ).stream().findFirst();
+        return findIssueInRuns(fingerprint, List.of(runId));
+    }
+
+    public Optional<StoredIssue> findIssueInRuns(String fingerprint, List<Long> runIds) {
+        if (runIds == null || runIds.isEmpty()) {
+            return Optional.empty();
+        }
+        List<StoredIssue> matches = listIssuesForRuns(runIds, null, null, null, null, null, true).stream()
+                .filter(issue -> fingerprint.equals(issue.fingerprint()))
+                .toList();
+        return matches.stream().findFirst();
     }
 
     public Optional<StoredIssue> findIssue(String fingerprint) {
@@ -317,6 +309,22 @@ public class RadarRepository {
             String bizValue,
             boolean includeMuted
     ) {
+        return listIssuesForRuns(List.of(runId), level, kind, q, bizKey, bizValue, includeMuted);
+    }
+
+    public List<StoredIssue> listIssuesForRuns(
+            List<Long> runIds,
+            String level,
+            String kind,
+            String q,
+            String bizKey,
+            String bizValue,
+            boolean includeMuted
+    ) {
+        if (runIds == null || runIds.isEmpty()) {
+            return List.of();
+        }
+        String placeholders = String.join(", ", runIds.stream().map(id -> "?").toList());
         StringBuilder sql = new StringBuilder(
                 """
                 SELECT
@@ -331,17 +339,25 @@ public class RadarRepository {
                     i.muted,
                     (
                         SELECT e2.message FROM events e2
-                        WHERE e2.run_id = e.run_id AND e2.fingerprint = i.fingerprint
+                        WHERE e2.run_id IN (%s) AND e2.fingerprint = i.fingerprint
                         ORDER BY e2.id DESC LIMIT 1
                     ) AS last_message,
-                    i.last_business_ids_json
+                    i.last_business_ids_json,
+                    (
+                        SELECT r.log_path FROM events e3
+                        JOIN runs r ON r.id = e3.run_id
+                        WHERE e3.fingerprint = i.fingerprint AND e3.run_id IN (%s)
+                        ORDER BY e3.id DESC LIMIT 1
+                    ) AS last_log_path
                 FROM events e
                 JOIN issues i ON i.fingerprint = e.fingerprint
-                WHERE e.run_id = ?
-                """
+                WHERE e.run_id IN (%s)
+                """.formatted(placeholders, placeholders, placeholders)
         );
         List<Object> args = new ArrayList<>();
-        args.add(runId);
+        args.addAll(runIds);
+        args.addAll(runIds);
+        args.addAll(runIds);
         if (level != null && !level.isBlank() && !"ALL".equalsIgnoreCase(level)) {
             sql.append(" AND e.level = ?");
             args.add(level.toUpperCase(Locale.ROOT));
@@ -393,14 +409,27 @@ public class RadarRepository {
 
     public List<StoredEvent> listEventsForFingerprint(String fingerprint, Long runId, int limit) {
         if (runId != null && runId > 0) {
-            return jdbc.query(
-                    "SELECT * FROM events WHERE fingerprint = ? AND run_id = ? ORDER BY id DESC LIMIT ?",
-                    eventMapper(), fingerprint, runId, limit
-            );
+            return listEventsForFingerprint(fingerprint, List.of(runId), limit);
         }
         return jdbc.query(
                 "SELECT * FROM events WHERE fingerprint = ? ORDER BY id DESC LIMIT ?",
                 eventMapper(), fingerprint, limit
+        );
+    }
+
+    public List<StoredEvent> listEventsForFingerprint(String fingerprint, List<Long> runIds, int limit) {
+        if (runIds == null || runIds.isEmpty()) {
+            return listEventsForFingerprint(fingerprint, (Long) null, limit);
+        }
+        String placeholders = String.join(", ", runIds.stream().map(id -> "?").toList());
+        List<Object> args = new ArrayList<>();
+        args.add(fingerprint);
+        args.addAll(runIds);
+        args.add(limit);
+        return jdbc.query(
+                "SELECT * FROM events WHERE fingerprint = ? AND run_id IN (" + placeholders + ") ORDER BY id DESC LIMIT ?",
+                eventMapper(),
+                args.toArray()
         );
     }
 
@@ -447,8 +476,19 @@ public class RadarRepository {
                 rs.getInt("has_custom_frame") == 1,
                 rs.getInt("muted") == 1,
                 rs.getString("last_message"),
-                JsonMaps.read(mapper, rs.getString("last_business_ids_json"))
+                JsonMaps.read(mapper, rs.getString("last_business_ids_json")),
+                optionalColumn(rs, "last_log_path")
         );
+    }
+
+    private static String optionalColumn(java.sql.ResultSet rs, String name) {
+        try {
+            rs.findColumn(name);
+            String value = rs.getString(name);
+            return value == null ? "" : value;
+        } catch (java.sql.SQLException e) {
+            return "";
+        }
     }
 
     private RowMapper<StoredEvent> eventMapper() {

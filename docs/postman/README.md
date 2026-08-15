@@ -22,6 +22,6 @@ Or drag the collection file onto the Postman sidebar.
 
 Fingerprints contain `@`. Detail and mute must use the `fingerprint` query param, not a path segment.
 
-`Open log` ships with an example Hybris console path. Change it to a file on your machine, or replay `sample-logs/console-20260809.log` from the repo.
+`Open log` ships with an example Hybris console path. Change it to a file on your machine (console, catalina, wrapper, or ant.log), or replay `sample-logs/console-20260809.log` from the repo.
 
 `SSE stream` stays open until you cancel it.

@@ -27,6 +27,16 @@ class IssueClassifierTest {
                 "ProductValidateInterceptor", "hybrisHTTP2", "InterceptorException", "InterceptorException", ""));
         assertEquals(IssueKind.MODEL_SAVE, IssueClassifier.classify(
                 "DefaultModelService", "hybrisHTTP3", "could not save", "ModelSavingException", "modelService.save"));
+        assertEquals(IssueKind.INITIALIZE, IssueClassifier.classify(
+                "DefaultSetup", "main", "creating type system failed", "IllegalStateException",
+                "de.hybris.platform.core.initialization"));
+        assertEquals(IssueKind.UPDATE, IssueClassifier.classify(
+                "TypeSystemUpdater", "main", "Update running system failed", "IllegalStateException", ""));
+        assertEquals(IssueKind.ANT, IssueClassifier.classify(
+                "javac", "javac", "Foo.java:42: cannot find symbol", "CompileError", "BUILD FAILED"));
+        assertEquals(IssueKind.TOMCAT, IssueClassifier.classify(
+                "org.apache.catalina.core.StandardContext", "main", "startup failed", "",
+                "org.apache.catalina.core.StandardContext.startInternal"));
     }
 
     @Test

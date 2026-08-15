@@ -1,0 +1,19 @@
+Buildfile: D:\hybris\hybris\bin\platform\build.xml
+
+clean:
+     [echo] cleaning hybris
+     [delete] Deleting directory D:\hybris\hybris\temp\hybris\antjavac
+
+all:
+    [javac] Compiling 3 source files to D:\hybris\hybris\bin\custom\training\classes
+    [javac] D:\hybris\hybris\bin\custom\training\src\com\yourcompany\facades\impl\DefaultCartFacade.java:42: error: cannot find symbol
+    [javac]         ProductModel product = productService.getProductForCode(code);
+    [javac]                                ^
+    [javac]   symbol:   variable productService
+    [javac]   location: class DefaultCartFacade
+    [javac] 1 error
+
+BUILD FAILED
+D:\hybris\hybris\bin\platform\build.xml:448: Compile failed; see the compiler error output for details.
+
+Total time: 12 seconds

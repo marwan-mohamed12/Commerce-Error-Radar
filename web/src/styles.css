@@ -25,6 +25,10 @@
   --radar-kind-solr: #5b93e0;
   --radar-kind-interceptor: #9b8af0;
   --radar-kind-save: #6aa8c2;
+  --radar-kind-init: #6bbf8a;
+  --radar-kind-update: #d4b05a;
+  --radar-kind-ant: #d4894a;
+  --radar-kind-tomcat: #c47a5a;
   --radar-kind-other: #8b9199;
   --radar-wash: radial-gradient(720px 320px at 0% 0%, color-mix(in srgb, #c9a36a 7%, transparent), transparent 58%),
     linear-gradient(180deg, #0c0c0c 0%, #080808 42%);
@@ -50,6 +54,10 @@
   --radar-kind-solr: #1f5fb3;
   --radar-kind-interceptor: #5c4bc4;
   --radar-kind-save: #2f6f88;
+  --radar-kind-init: #1d7a4c;
+  --radar-kind-update: #8a6918;
+  --radar-kind-ant: #9a5620;
+  --radar-kind-tomcat: #9a4630;
   --radar-kind-other: #5c6570;
   --radar-wash: radial-gradient(800px 360px at 0% 0%, color-mix(in srgb, #8a6918 9%, transparent), transparent 55%),
     linear-gradient(180deg, #f4f7fa 0%, #e8edf2 40%);
@@ -204,6 +212,22 @@
   }
   [data-kind='MODEL_SAVE'] {
     --kind: var(--radar-kind-save);
+  }
+  [data-kind='INITIALIZE'] {
+    --kind: var(--radar-kind-init);
+  }
+  [data-kind='UPDATE'] {
+    --kind: var(--radar-kind-update);
+  }
+  [data-kind='ANT'] {
+    --kind: var(--radar-kind-ant);
+  }
+  [data-kind='TOMCAT'],
+  [data-kind='CONSOLE'],
+  [data-kind='CATALINA'],
+  [data-kind='WRAPPER'],
+  [data-kind='LOCALHOST'] {
+    --kind: var(--radar-kind-tomcat);
   }
   [data-kind='OTHER'],
   [data-kind='ALL'] {

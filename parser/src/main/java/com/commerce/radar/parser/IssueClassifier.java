@@ -36,9 +36,34 @@ public final class IssueClassifier {
         if (containsAny(lower, "modelsavingexception", "modelservice.save", "model save")) {
             return IssueKind.MODEL_SAVE;
         }
+        if (containsAny(lower,
+                "build failed", "compile failed", "cannot find symbol", "[javac]")
+                || "ant".equalsIgnoreCase(logger)
+                || "javac".equalsIgnoreCase(logger)) {
+            return IssueKind.ANT;
+        }
         if (containsAny(lower, "commercewebservices", "occ", "/rest/v2", "cartscontroller", "productscontroller",
                 "defaultcartfacade", "occinterceptor")) {
             return IssueKind.OCC;
+        }
+        if (containsAny(lower,
+                "updatesystem", "update running system", "updating system", "system update",
+                "update typesystem", "updating type system", "clearing orphaned types",
+                "update orphaned types", "systemupdate.")) {
+            return IssueKind.UPDATE;
+        }
+        if (containsAny(lower,
+                "system initialization", "initializing system", "initialize system", "initsystem",
+                "creating type system", "create type system", "essential data", "essentialdata",
+                "systemsetup", "project data importer")) {
+            return IssueKind.INITIALIZE;
+        }
+        if (containsAny(lower,
+                "org.apache.catalina", "org.apache.coyote", "org.apache.tomcat",
+                "standardcontext", "startup failed", "jvm exited", "wrapper manager")
+                || "wrapper".equalsIgnoreCase(logger)
+                || "catalina".equalsIgnoreCase(logger)) {
+            return IssueKind.TOMCAT;
         }
         return IssueKind.OTHER;
     }
@@ -64,6 +89,10 @@ public final class IssueClassifier {
             case SOLR -> withKindPrefix("Solr", firstNonBlank(trimMessage(message), shortEx));
             case INTERCEPTOR -> withKindPrefix("Interceptor", firstNonBlank(simple, logger)) + " — " + shortEx;
             case MODEL_SAVE -> "Model save — " + shortEx;
+            case INITIALIZE -> "Initialize — " + firstNonBlank(trimMessage(message), shortEx);
+            case UPDATE -> "Update — " + firstNonBlank(trimMessage(message), shortEx);
+            case ANT -> "Ant — " + firstNonBlank(trimMessage(message), shortEx);
+            case TOMCAT -> "Tomcat — " + firstNonBlank(trimMessage(message), shortEx);
             case OTHER -> {
                 String head = simple.isBlank() ? firstNonBlank(logger, "Hybris") : simple;
                 yield head + " — " + firstNonBlank(shortEx, trimMessage(message));

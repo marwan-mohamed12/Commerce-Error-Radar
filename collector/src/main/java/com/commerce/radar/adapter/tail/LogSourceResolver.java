@@ -30,9 +30,8 @@ public final class LogSourceResolver {
      */
     public static Decision resolve(Path hybrisHome, List<Path> sampleLogDirs) {
         if (hybrisHome != null && !hybrisHome.toString().isBlank()) {
-            List<Path> dirs = ConsoleLogLocator.tomcatLogDirs(hybrisHome);
-            Optional<Path> newest = ConsoleLogLocator.newestIn(dirs.toArray(Path[]::new));
-            Path watch = ConsoleLogLocator.tomcatLogDir(hybrisHome);
+            Optional<Path> newest = HybrisLogLocator.newest(hybrisHome);
+            Path watch = HybrisLogLocator.watchDir(hybrisHome);
             if (newest.isPresent()) {
                 Path file = newest.get();
                 return new Decision(
@@ -47,7 +46,7 @@ public final class LogSourceResolver {
                     "LIVE",
                     null,
                     watch,
-                    "Watching " + watched + " for console-*.log"
+                    "Watching " + watched + " for console, catalina, wrapper, ant logs"
             );
         }
         Path sample = findSampleLog(sampleLogDirs);
@@ -63,7 +62,7 @@ public final class LogSourceResolver {
                 "IDLE",
                 null,
                 null,
-                "No console-*.log found. Set radar.hybris-home or HYBRIS_HOME."
+                "No Hybris log found. Set radar.hybris-home or HYBRIS_HOME."
         );
     }
 

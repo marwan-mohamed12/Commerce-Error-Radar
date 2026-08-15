@@ -1,0 +1,16 @@
+Buildfile: D:\hybris\hybris\bin\platform\build.xml
+
+initialize:
+     [java] INFO  [main] [DefaultSetup] Starting system initialization
+     [java] INFO  [main] [TypeSystemCreator] creating type system
+     [java] INFO  [impex reader] [ImpExReader] importing resource essential-data.impex
+     [java] ERROR [impex reader] [ImpExReader] unknown catalog version electronicsProductCatalog:Online while importing essential-data.impex
+     [java] de.hybris.platform.impex.jalo.ImpExException: unknown catalog version electronicsProductCatalog:Online
+     [java] 	at de.hybris.platform.impex.jalo.imp.ImpExImportReader.readLine(ImpExImportReader.java:512)
+     [java] 	at de.hybris.platform.impex.jalo.Importer.importNext(Importer.java:246)
+     [java] 	at com.yourcompany.initialdata.setup.CoreDataImporter.importImpexFile(CoreDataImporter.java:77)
+     [java] 	at de.hybris.platform.core.initialization.SystemSetupCollector.executeMethods(SystemSetupCollector.java:118)
+     [java] INFO  [main] [DefaultSetup] system initialization finished with errors
+
+BUILD SUCCESSFUL
+Total time: 3 minutes
